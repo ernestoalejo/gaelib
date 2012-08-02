@@ -3,8 +3,8 @@ package app
 import (
 	"bytes"
 
-	"archer/app/mail"
-	"archer/conf"
+	"conf"
+	"github.com/ernestokarim/gaelib/app/mail"
 
 	"appengine"
 )
