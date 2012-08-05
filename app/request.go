@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -25,6 +26,22 @@ func (r *Request) LoadData(data interface{}) error {
 
 	if err := schemaDecoder.Decode(data, r.Req.Form); err != nil {
 		return fmt.Errorf("error decoding the schema: %s", err)
+	}
+
+	return nil
+}
+
+func (r *Request) LoadJsonData(data interface{}) error {
+	if err := json.NewDecoder(r.Req.Body).Decode(data); err != nil {
+		return fmt.Errorf("error decoding the json: %s", err)
+	}
+
+	return nil
+}
+
+func (r *Request) EmitJson(data interface{}) error {
+	if err := json.NewEncoder(r.W).Encode(data); err != nil {
+		return fmt.Errorf("error encoding the json: %s", err)
 	}
 
 	return nil
