@@ -17,6 +17,7 @@ var (
 		"equals":   func(a, b interface{}) bool { return a == b },
 		"last":     func(max, i int) bool { return i == max-1 },
 		"datetime": func(t time.Time) string { return t.Format(DATETIME_FORMAT) },
+		"bhtml":    func(s string) template.HTML { return template.HTML(s) },
 	}
 )
 
