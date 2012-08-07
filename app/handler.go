@@ -39,9 +39,3 @@ func (fn Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		LogError(r, err)
 	}
 }
-
-func LogError(r *Request, err error) {
-	r.internalServerError(err.Error())
-	r.C.Errorf("%s", err)
-	SendErrorByEmail(r.C, err.Error())
-}
