@@ -82,3 +82,10 @@ func (r *Request) internalServerError(message string) error {
 	http.Error(r.W, message, http.StatusInternalServerError)
 	return nil
 }
+
+func (r *Request) JsonResponse(data interface{}) error {
+	if err := json.NewEncoder(r.W).Encode(data); err != nil {
+		return fmt.Errorf("cannot serialize the response: %s", err)
+	}
+	return nil
+}
