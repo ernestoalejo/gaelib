@@ -25,7 +25,7 @@ func RawExecuteTemplate(w io.Writer, names []string, data interface{}) error {
 	// Build the key for this template
 	cname := ""
 	for i, name := range names {
-		names[i] = "tmpl/" + name + ".html"
+		names[i] = "templates/" + name + ".html"
 		cname += name
 	}
 
