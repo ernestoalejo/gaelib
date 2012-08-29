@@ -47,3 +47,7 @@ func RawExecuteTemplate(w io.Writer, names []string, data interface{}) error {
 
 	return nil
 }
+
+func AddTemplateFunc(name string, f interface{}) {
+	templatesFuncs[name] = f
+}
