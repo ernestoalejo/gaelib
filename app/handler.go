@@ -20,11 +20,7 @@ func (fn Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("X-UA-Compatible", "chrome=1")
 
 	// Create the request.
-	r := &Request{
-		Req: req,
-		W:   w,
-		C:   c,
-	}
+	r := &Request{Req: req, W: w, C: c}
 
 	// Defers the panic recovering.
 	defer func() {

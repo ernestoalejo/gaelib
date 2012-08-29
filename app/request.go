@@ -11,6 +11,7 @@ import (
 )
 
 var schemaDecoder = schema.NewDecoder()
+var errHandler Handler = nil
 
 type Request struct {
 	Req *http.Request
@@ -78,9 +79,17 @@ func (r *Request) ExecuteTemplate(names []string, data interface{}) error {
 
 // You shouldn't use this function, but directly return
 // an error from the handler.
-func (r *Request) internalServerError(message string) error {
+func (r *Request) internalServerError(message string) {
+	if errHandler != nil {
+		r.W.WriteHeader(http.StatusInternalServerError)
+		err := errHandler(r)
+		if err == nil {
+			return
+		}
+		message += err.Error()
+	}
+
 	http.Error(r.W, message, http.StatusInternalServerError)
-	return nil
 }
 
 func (r *Request) JsonResponse(data interface{}) error {
@@ -88,4 +97,8 @@ func (r *Request) JsonResponse(data interface{}) error {
 		return fmt.Errorf("cannot serialize the response: %s", err)
 	}
 	return nil
+}
+
+func SetErrorHandler(f Handler) {
+	errHandler = f
 }
