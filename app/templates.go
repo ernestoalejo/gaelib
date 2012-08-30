@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"strings"
 	"time"
 
 	"appengine"
@@ -18,6 +19,7 @@ var (
 		"last":     func(max, i int) bool { return i == max-1 },
 		"datetime": func(t time.Time) string { return t.Format(DATETIME_FORMAT) },
 		"bhtml":    func(s string) template.HTML { return template.HTML(s) },
+		"nl2br":    func(s string) template.HTML { return template.HTML(strings.Replace(s, "\n", "<br>", -1)) },
 	}
 )
 
