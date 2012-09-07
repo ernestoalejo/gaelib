@@ -11,10 +11,7 @@ import (
 )
 
 var schemaDecoder = schema.NewDecoder()
-var (
-	errHandler       Handler = nil
-	forbiddenHandler Handler = nil
-)
+var errHandler Handler = nil
 
 type Request struct {
 	Req *http.Request
@@ -66,18 +63,6 @@ func (r *Request) Redirect(path string) error {
 	return nil
 }
 
-func (r *Request) Forbidden(message string) error {
-	if forbiddenHandler != nil {
-		r.W.WriteHeader(http.StatusForbidden)
-		err := forbiddenHandler(r)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (r *Request) ExecuteTemplate(names []string, data interface{}) error {
 	return RawExecuteTemplate(r.W, names, data)
 }
@@ -106,8 +91,4 @@ func (r *Request) JsonResponse(data interface{}) error {
 
 func SetErrorHandler(f Handler) {
 	errHandler = f
-}
-
-func SetForbiddenHandler(f Handler) {
-	forbiddenHandler = f
 }
