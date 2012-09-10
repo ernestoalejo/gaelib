@@ -63,6 +63,13 @@ func (r *Request) Redirect(path string) error {
 	return nil
 }
 
+// It returns a nil error always for easy of use inside the handlers.
+// Example: return r.RedirectPermanently("/foo")
+func (r *Request) RedirectPermanently(path string) error {
+	http.Redirect(r.W, r.Req, path, http.StatusMovedPermanently)
+	return nil
+}
+
 func (r *Request) ExecuteTemplate(names []string, data interface{}) error {
 	return RawExecuteTemplate(r.W, names, data)
 }
