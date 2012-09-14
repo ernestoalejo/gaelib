@@ -101,6 +101,11 @@ func (r *Request) JsonResponse(data interface{}) error {
 	return nil
 }
 
+func (r *Request) LogError(err error) {
+	r.C.Errorf("%s", err)
+	SendErrorByEmail(r.C, err.Error())
+}
+
 func SetErrorHandler(f Handler) {
 	errHandler = f
 }

@@ -9,12 +9,6 @@ import (
 	"appengine"
 )
 
-func LogError(r *Request, err error) {
-	r.internalServerError(err.Error())
-	r.C.Errorf("%s", err)
-	SendErrorByEmail(r.C, err.Error())
-}
-
 func SendErrorByEmail(c appengine.Context, errorStr string) {
 	appid := appengine.AppID(c)
 

@@ -26,12 +26,14 @@ func (fn Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if rec := recover(); rec != nil {
 			err := fmt.Errorf("panic recovered error: %+v\n%s", rec, debug.Stack())
-			LogError(r, err)
+			r.LogError(err)
+			r.internalServerError(err.Error())
 		}
 	}()
 
 	// Call the handler.
 	if err := fn(r); err != nil {
-		LogError(r, err)
+		r.LogError(err)
+		r.internalServerError(err.Error())
 	}
 }
