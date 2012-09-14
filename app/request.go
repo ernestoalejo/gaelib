@@ -53,7 +53,12 @@ func (r *Request) IsPOST() bool {
 }
 
 func (r *Request) Path() string {
-	return r.Req.URL.Path + "?" + r.Req.URL.RawQuery
+	u := r.Req.URL.Path
+	query := r.Req.URL.RawQuery
+	if len(query) > 0 {
+		u += query
+	}
+	return u
 }
 
 // It returns a nil error always for easy of use inside the handlers.
