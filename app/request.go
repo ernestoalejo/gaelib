@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"appengine"
 
@@ -26,7 +27,25 @@ func (r *Request) LoadData(data interface{}) error {
 	}
 
 	if err := schemaDecoder.Decode(data, r.Req.Form); err != nil {
-		return fmt.Errorf("error decoding the schema: %s", err)
+		e, ok := err.(schema.MultiError)
+		if ok {
+			// Delete the invalid path errors
+			for k, v := range e {
+				if strings.Contains(v.Error(), "schema: invalid path") {
+					delete(e, k)
+				}
+			}
+
+			// Return directly if there are no other kind of errors
+			if len(e) == 0 {
+				return nil
+			}
+		}
+
+		// Not a MultiError, log it
+		if err != nil {
+			return fmt.Errorf("error decoding the schema: %s", err)
+		}
 	}
 
 	return nil
