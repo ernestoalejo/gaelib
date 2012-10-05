@@ -47,14 +47,14 @@ func SendMail(c appengine.Context, mail *Mail) error {
 	// Request the SendGrid API
 	resp, err := client.PostForm(conf.MAIL_SEND_API, data)
 	if err != nil {
-		return fmt.Errorf("cannot fetch the sendgrid api: %s", err)
+		return err
 	}
 	defer resp.Body.Close()
 
 	// Decode the Mail API response
 	var r mailAPI
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
-		return fmt.Errorf("cannot decode the api response: %s", err)
+		return err
 	}
 
 	// Test for errors in the api call

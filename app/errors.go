@@ -2,6 +2,8 @@ package app
 
 import (
 	"bytes"
+	"fmt"
+	"runtime/debug"
 
 	"conf"
 	"github.com/ernestokarim/gaelib/app/mail"
@@ -9,7 +11,44 @@ import (
 	"appengine"
 )
 
-func SendErrorByEmail(c appengine.Context, errorStr string) {
+type AppError struct {
+	CallStack   string
+	OriginalErr error
+	Code        int
+}
+
+func (err *AppError) Error() string {
+	return fmt.Sprintf(" [status code %d] %s\n\n%s", err.Code, err.OriginalErr, err.CallStack)
+}
+
+func (err *AppError) Log(c appengine.Context) {
+	c.Errorf("%s", err.Error())
+	sendErrorByEmail(c, err.Error())
+}
+
+func Error(original error) error {
+	return &AppError{
+		OriginalErr: original,
+		Code:        500,
+		CallStack:   fmt.Sprintf("%s", debug.Stack()),
+	}
+}
+
+func ErrNotFound() error {
+	return &AppError{
+		Code:      404,
+		CallStack: fmt.Sprintf("%s", debug.Stack()),
+	}
+}
+
+func ErrForbidden() error {
+	return &AppError{
+		Code:      403,
+		CallStack: fmt.Sprintf("%s", debug.Stack()),
+	}
+}
+
+func sendErrorByEmail(c appengine.Context, errorStr string) {
 	appid := appengine.AppID(c)
 
 	// Try to send an email to the admin if the app is in production
