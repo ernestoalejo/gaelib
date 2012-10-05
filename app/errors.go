@@ -6,7 +6,7 @@ import (
 	"runtime/debug"
 
 	"conf"
-	"github.com/ernestokarim/gaelib/app/mail"
+	"github.com/ernestokarim/gaelib/mail"
 
 	"appengine"
 )
