@@ -18,7 +18,7 @@ type AppError struct {
 }
 
 func (err *AppError) Error() string {
-	return fmt.Sprintf(" [status code %d] %s\n\n%s", err.Code, err.OriginalErr, err.CallStack)
+	return fmt.Sprintf("[status code %d] %s\n\n%s", err.Code, err.OriginalErr, err.CallStack)
 }
 
 func (err *AppError) Log(c appengine.Context) {

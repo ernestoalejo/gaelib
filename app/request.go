@@ -7,16 +7,13 @@ import (
 
 	"appengine"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 )
 
 var (
 	schemaDecoder = schema.NewDecoder()
 
-	errHandler       Handler = nil
-	forbiddenHandler Handler = nil
-	notFoundHandler  Handler = nil
+	errorHandlers = map[int]Handler{}
 )
 
 type Request struct {
@@ -117,16 +114,10 @@ func (r *Request) processError(err error) {
 	}
 
 	e.Log(r.C)
-	if e.Code == 500 && errHandler != nil {
-		if err := errHandler(r); err == nil {
-			return
-		}
-	} else if e.Code == 404 && notFoundHandler != nil {
-		if err := notFoundHandler(r); err == nil {
-			return
-		}
-	} else if e.Code == 403 && forbiddenHandler != nil {
-		if err := forbiddenHandler(r); err == nil {
+
+	h, ok := errorHandlers[e.Code]
+	if ok {
+		if err := h(r); err == nil {
 			return
 		}
 	}
@@ -134,15 +125,6 @@ func (r *Request) processError(err error) {
 	http.Error(r.W, "", e.Code)
 }
 
-func SetErrorHandler(f Handler) {
-	errHandler = f
-}
-
-func SetForbiddenHandler(f Handler) {
-	forbiddenHandler = f
-}
-
-func SetNotFoundHandler(r *mux.Router, f Handler) {
-	notFoundHandler = f
-	r.NotFoundHandler = f
+func SetErrorHandler(code int, f Handler) {
+	errorHandlers[code] = f
 }
