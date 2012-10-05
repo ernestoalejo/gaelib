@@ -8,7 +8,7 @@ import (
 
 	"appengine"
 
-	"code.google.com/p/gorilla/schema"
+	"github.com/gorilla/schema"
 )
 
 var schemaDecoder = schema.NewDecoder()
