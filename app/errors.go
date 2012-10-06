@@ -34,14 +34,14 @@ func Error(original error) error {
 	}
 }
 
-func ErrNotFound() error {
+func NotFound() error {
 	return &AppError{
 		Code:      404,
 		CallStack: fmt.Sprintf("%s", debug.Stack()),
 	}
 }
 
-func ErrForbidden() error {
+func Forbidden() error {
 	return &AppError{
 		Code:      403,
 		CallStack: fmt.Sprintf("%s", debug.Stack()),
