@@ -48,6 +48,13 @@ func Forbidden() error {
 	}
 }
 
+func NotAllowed() error {
+	return &AppError{
+		Code:      405,
+		CallStack: fmt.Sprintf("%s", debug.Stack()),
+	}
+}
+
 func sendErrorByEmail(c appengine.Context, errorStr string) {
 	appid := appengine.AppID(c)
 
