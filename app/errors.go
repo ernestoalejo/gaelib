@@ -34,6 +34,10 @@ func Error(original error) error {
 	}
 }
 
+func Errorf(format string, args ...interface{}) error {
+	return Error(fmt.Errorf(format, args...))
+}
+
 func NotFound() error {
 	return &AppError{
 		Code:      404,
