@@ -77,7 +77,7 @@ func (r *Request) Path() string {
 	u := r.Req.URL.Path
 	query := r.Req.URL.RawQuery
 	if len(query) > 0 {
-		u += query
+		u += "?" + query
 	}
 	return u
 }
