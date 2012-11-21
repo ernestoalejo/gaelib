@@ -55,15 +55,13 @@ func EqualsTo(f *Form, id, message string) *Validator {
 		Name: "equals-to",
 		Args: []interface{}{id},
 		Func: func(v string) string {
-			for _, field := range f.Fields {
-				input, ok := field.(*InputField)
-				if ok && input.Control.Id == id {
-					if input.Control.Value != v {
-						return message
-					}
-
-					return ""
+			input := f.GetControl(id)
+			if input != nil {
+				if input.Value != v {
+					return message
 				}
+
+				return ""
 			}
 
 			panic("should not reach here: " + id)
@@ -83,10 +81,10 @@ func SelectValue(f *Form, id, message string) *Validator {
 							return ""
 						}
 					}
-
-					return message
 				}
 			}
+
+			return message
 
 			panic("should not reach here: " + id)
 		},

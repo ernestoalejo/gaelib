@@ -90,6 +90,15 @@ func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
 	return !failed, nil
 }
 
+func (f *Form) GetControl(name string) *Control {
+	field, ok := f.Fields[name]
+	if !ok {
+		return nil
+	}
+
+	return getControl(field)
+}
+
 func getControl(f Field) *Control {
 	// Control for inputs
 	input, ok := f.(*InputField)
