@@ -47,10 +47,14 @@ type InputField struct {
 func (f *InputField) Build() string {
 	// Tag attributes
 	attrs := map[string]string{
-		"type":  f.Type,
-		"id":    f.Control.Id,
-		"name":  f.Control.Id,
-		"value": template.HTMLEscapeString(f.Control.Value),
+		"type": f.Type,
+		"id":   f.Control.Id,
+		"name": f.Control.Id,
+	}
+
+	// Add the value if we don't need to reset it every time
+	if !f.Control.ResetValue {
+		attrs["value"] = template.HTMLEscapeString(f.Control.Value)
 	}
 
 	// Add the disabled flag

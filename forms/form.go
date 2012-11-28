@@ -59,7 +59,8 @@ func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
 	}
 
 	failed := false
-	for _, field := range f.Fields {
+	for _, name := range f.FieldNames {
+		field := f.Fields[name]
 		if control := getControl(field); control != nil {
 			// Extract the control value and assign it
 			value := normalizeValue(control.Id, r.Req.Form)
