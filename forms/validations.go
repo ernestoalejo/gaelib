@@ -73,18 +73,16 @@ func SelectValue(f *Form, id, message string) *Validator {
 	return &Validator{
 		Name: "select-value",
 		Func: func(v string) string {
-			for _, field := range f.Fields {
-				sel, ok := field.(*SelectField)
-				if ok && sel.Control.Id == id {
-					for _, value := range sel.Values {
-						if v == value {
-							return ""
-						}
+			sel, ok := f.Fields[id].(*SelectField)
+			if ok {
+				for _, value := range sel.Values {
+					if v == value {
+						return ""
 					}
 				}
-			}
 
-			return message
+				return message
+			}
 
 			panic("should not reach here: " + id)
 		},
