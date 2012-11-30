@@ -23,6 +23,17 @@ func (c *Control) Build() string {
 		err = " error"
 	}
 
+	// Fields without name are built without label
+	if c.Name == "" {
+		return fmt.Sprintf(`
+			<div class="control-group%s">
+				%%s
+				<p class="help-block">%s</p>
+				<p class="help-block">%s</p>
+			</div>
+		`, err, c.Error, c.Help)
+	}
+
 	return fmt.Sprintf(`
 		<div class="control-group%s">
 			<label class="control-label" for="%s">%s</label>
