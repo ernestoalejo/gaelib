@@ -17,6 +17,12 @@ type Form struct {
 	Method, Action string
 	FieldNames     []string
 	Fields         map[string]Field
+
+	// True if we want to show a message at the top of the form
+	// each time a validation error occurs
+	ShowError bool
+
+	withError bool
 }
 
 func New(action string) *Form {
@@ -25,6 +31,7 @@ func New(action string) *Form {
 		Action:     action,
 		FieldNames: make([]string, 0),
 		Fields:     make(map[string]Field),
+		withError:  false,
 	}
 }
 
@@ -36,6 +43,15 @@ func (f *Form) AddField(name string, field Field) {
 func (f *Form) Build() string {
 	// Set the error class if needed
 	out := ""
+
+	if f.withError && f.ShowError {
+		out += `
+			<div class="alert alert-error">
+				Hay errores en el formulario, revísalos y guarda de nuevo
+			</div><br>
+		`
+	}
+
 	for _, name := range f.FieldNames {
 		out += f.Fields[name].Build()
 	}
@@ -72,6 +88,7 @@ func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
 					failed = true
 
 					control.Error = err
+					f.withError = true
 					if control.ResetValue {
 						control.Value = ""
 					}
@@ -83,6 +100,7 @@ func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
 	}
 
 	if !failed {
+		f.withError = false
 		if err := r.LoadData(data); err != nil {
 			return true, err
 		}
