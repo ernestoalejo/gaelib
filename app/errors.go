@@ -74,7 +74,7 @@ func sendErrorByEmail(c appengine.Context, errorStr string) {
 
 			// Execute the template
 			html := bytes.NewBuffer(nil)
-			if err := RawExecuteTemplate(html, []string{"mails/error"}, data); err != nil {
+			if err := Template(html, []string{"mails/error"}, data); err != nil {
 				c.Errorf("cannot prepare an error email to the admin %s: %s", admin, err)
 				continue
 			}

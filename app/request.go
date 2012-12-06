@@ -96,8 +96,8 @@ func (r *Request) RedirectPermanently(path string) error {
 	return nil
 }
 
-func (r *Request) ExecuteTemplate(names []string, data interface{}) error {
-	return RawExecuteTemplate(r.W, names, data)
+func (r *Request) Template(names []string, data interface{}) error {
+	return Template(r.W, names, data)
 }
 
 func (r *Request) JsonResponse(data interface{}) error {

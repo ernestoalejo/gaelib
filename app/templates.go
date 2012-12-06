@@ -9,20 +9,43 @@ import (
 	"appengine"
 )
 
-const DATETIME_FORMAT = "02/01/2006 15:04:05"
-
 var (
 	templatesCache = map[string]*template.Template{}
-	templatesFuncs = template.FuncMap{
-		"equals":   func(a, b interface{}) bool { return a == b },
-		"last":     func(max, i int) bool { return i == max-1 },
-		"datetime": func(t time.Time) string { return t.Format(DATETIME_FORMAT) },
-		"bhtml":    func(s string) template.HTML { return template.HTML(s) },
-		"nl2br":    func(s string) template.HTML { return template.HTML(strings.Replace(s, "\n", "<br>", -1)) },
-	}
+	templatesFuncs = template.FuncMap{}
 )
 
-func RawExecuteTemplate(w io.Writer, names []string, data interface{}) error {
+func init() {
+	// Compare two items to see if they're equal
+	AddTemplateFunc("equals", func(a, b interface{}) bool {
+		return a == b
+	})
+
+	// Returns true if the current iteration is the last one of the loop
+	AddTemplateFunc("last", func(max, i int) bool {
+		return i == max-1
+	})
+
+	// Quick format for a date & time
+	AddTemplateFunc("datetime", func(t time.Time) string {
+		return t.Format("02/01/2006 15:04:05")
+	})
+
+	// Converst any string into an HTML snnipet
+	AddTemplateFunc("bhtml", func(s string) template.HTML {
+		return template.HTML(s)
+	})
+
+	// Converts new lines to their equivalent in HTML
+	AddTemplateFunc("nl2br", func(s string) template.HTML {
+		return template.HTML(strings.Replace(s, "\n", "<br>", -1))
+	})
+}
+
+func AddTemplateFunc(name string, f interface{}) {
+	templatesFuncs[name] = f
+}
+
+func Template(w io.Writer, names []string, data interface{}) error {
 	// Build the key for this template
 	cname := ""
 	for i, name := range names {
@@ -47,8 +70,4 @@ func RawExecuteTemplate(w io.Writer, names []string, data interface{}) error {
 	}
 
 	return nil
-}
-
-func AddTemplateFunc(name string, f interface{}) {
-	templatesFuncs[name] = f
 }
