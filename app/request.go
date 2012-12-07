@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -62,6 +63,10 @@ func (r *Request) LoadJsonData(data interface{}) error {
 }
 
 func (r *Request) EmitJson(data interface{}) error {
+	// XSSI protection
+	fmt.Fprintln(r.W, ")]}',")
+
+	// Encode the output
 	if err := json.NewEncoder(r.W).Encode(data); err != nil {
 		return Error(err)
 	}
