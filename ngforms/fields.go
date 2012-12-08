@@ -35,7 +35,7 @@ func (c *Control) Build() string {
 	}
 
 	return fmt.Sprintf(`
-		<div class="control-group" ng-class="f.%s.$dirty && (%s) && 'error'">
+		<div class="control-group" ng-class="val && f.%s.$dirty && (%s) && 'error'">
 			<label class="control-label" for="%s">%s</label>
 			<div class="controls">%%s%%s</div>
 		</div>
@@ -72,11 +72,11 @@ func (f *InputField) Build() string {
 	}
 
 	// Validation attrs
-	errors := fmt.Sprintf(`<p class="help-block error" ng-show="f.%s.$dirty">`,
+	errors := fmt.Sprintf(`<p class="help-block error" ng-show="val && f.%s.$dirty">`,
 		f.Control.Id)
 	for _, v := range f.Control.Validations {
 		// Check if it's an accepted validator
-		allowed, ok := allowedValidators[v.Error]
+		allowed, ok := allowedValidators[f.Type]
 		if !ok {
 			panic("input type not supported")
 		}

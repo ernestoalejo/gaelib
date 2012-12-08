@@ -42,7 +42,7 @@ func (f *Form) Build() string {
 
 	// Build the form output
 	return fmt.Sprintf(`
-		<form class="form-horizontal" name="f" novalidate>
+		<form class="form-horizontal" name="f" novalidate ng-init="val = false;">
 			<fieldset>%s%s</fieldset>
 		</form>
 	`, legend, out)
