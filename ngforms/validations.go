@@ -2,6 +2,7 @@ package ngforms
 
 import (
 	"fmt"
+	"regexp"
 )
 
 // A validator func it's one that receive a value as a param
@@ -43,11 +44,13 @@ func ShorterThan(value int, msg string) *Validator {
 }
 
 func Pattern(pattern, msg string) *Validator {
+	re := regexp.MustCompile(pattern)
+
 	return &Validator{
 		Attrs:   map[string]string{"pattern": pattern},
 		Message: msg,
 		Error:   "pattern",
-		Func:    func(v string) bool { return true },
+		Func:    func(v string) bool { return re.MatchString(v) },
 	}
 }
 
