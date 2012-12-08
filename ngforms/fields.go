@@ -5,9 +5,22 @@ import (
 	"strings"
 )
 
+// Allowed validators for this kind of input
+var allowedValidators = map[string]map[string]bool{
+	"text": map[string]bool{
+		"required":  true,
+		"minlength": true,
+		"maxlength": true,
+		"pattern":   true,
+	},
+}
+
+// ==================================================================
+
 type Control struct {
-	Id, Name string
-	Help     string
+	Id, Name    string
+	Help        string
+	Validations []*Validator
 
 	errors []string
 }
@@ -29,27 +42,20 @@ func (c *Control) Build() string {
 	`, c.Id, errs, c.Id, c.Name)
 }
 
-// --------------------------------------------------------
+// ==================================================================
 
-type TextField struct {
+type InputField struct {
+	Type               string
 	Control            *Control
 	Class              []string
 	Disabled, ReadOnly bool
 	PlaceHolder        string
-
-	Required       bool
-	MinLen, MaxLen int
-	Pattern        string
-
-	RequiredMsg          string
-	MinLenMsg, MaxLenMsg string
-	PatternMsg           string
 }
 
-func (f *TextField) Build() string {
+func (f *InputField) Build() string {
 	// Initial arguments
 	attrs := map[string]string{
-		"type":        "text",
+		"type":        f.Type,
 		"id":          f.Control.Id,
 		"name":        f.Control.Id,
 		"placeholder": f.PlaceHolder,
@@ -66,31 +72,25 @@ func (f *TextField) Build() string {
 	}
 
 	// Validation attrs
-	errors := fmt.Sprintf(`{{f.email.$error}}<p class="help-block error" ng-show="f.%s.$dirty">`,
+	errors := fmt.Sprintf(`<p class="help-block error" ng-show="f.%s.$dirty">`,
 		f.Control.Id)
-	if f.MinLen > 0 {
-		attrs["ng-minlength"] = fmt.Sprintf("%d", f.MinLen)
-		errors += fmt.Sprintf(`<span ng-show="f.%s.$error.minlength">%s</span>`,
-			f.Control.Id, f.MinLenMsg)
-		f.Control.errors = append(f.Control.errors, "minlength")
-	}
-	if f.MaxLen > 0 {
-		attrs["ng-maxlength"] = fmt.Sprintf("%d", f.MaxLen)
-		errors += fmt.Sprintf(`<span ng-show="f.%s.$error.maxlength">%s</span>`,
-			f.Control.Id, f.MaxLenMsg)
-		f.Control.errors = append(f.Control.errors, "maxlength")
-	}
-	if f.Pattern != "" {
-		attrs["ng-pattern"] = f.Pattern
-		errors += fmt.Sprintf(`<span ng-show="f.%s.$error.pattern">%s</span>`,
-			f.Control.Id, f.PatternMsg)
-		f.Control.errors = append(f.Control.errors, "pattern")
-	}
-	if f.Required {
-		attrs["required"] = "required"
-		errors += fmt.Sprintf(`<span ng-show="f.%s.$error.required">%s</span>`,
-			f.Control.Id, f.RequiredMsg)
-		f.Control.errors = append(f.Control.errors, "required")
+	for _, v := range f.Control.Validations {
+		// Check if it's an accepted validator
+		allowed, ok := allowedValidators[v.Error]
+		if !ok {
+			panic("input type not supported")
+		}
+		if _, ok := allowed[v.Error]; !ok {
+			panic("validator not allowed in " + f.Control.Id + ": " + v.Error)
+		}
+
+		// Add the attributes and errors
+		for k, v := range v.Attrs {
+			attrs[k] = v
+		}
+		errors += fmt.Sprintf(`<span ng-show="f.%s.$error.%s">%s</span>`, f.Control.Id,
+			v.Error, v.Message)
+		f.Control.errors = append(f.Control.errors, v.Error)
 	}
 	errors += "</p>"
 
@@ -104,7 +104,7 @@ func (f *TextField) Build() string {
 	return fmt.Sprintf(f.Control.Build(), ctrl, errors)
 }
 
-func (f *TextField) Validate(value string) string {
+func (f *InputField) Validate(value string) string {
 	return ""
 }
 

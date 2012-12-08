@@ -40,6 +40,7 @@ func (f *Form) Build() string {
 		legend = "<legend>" + f.Name + "</legend>"
 	}
 
+	// Build the form output
 	return fmt.Sprintf(`
 		<form class="form-horizontal" name="f" novalidate>
 			<fieldset>%s%s</fieldset>
