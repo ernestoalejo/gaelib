@@ -54,25 +54,14 @@ func Pattern(pattern, msg string) *Validator {
 	}
 }
 
-/*package forms
-
-import (
-	"strings"
-)
-
-func Email(message string) *Validator {
-	return &Validator{
-		Name: "email",
-		Func: func(v string) string {
-			if !strings.Contains(v, "@") || !strings.Contains(v, ".") {
-				return message
-			}
-
-			return ""
-		},
-	}
+func Email(msg string) *Validator {
+	emails := `^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$`
+	p := Pattern(emails, msg)
+	p.Error = "email"
+	return p
 }
 
+/*
 func EqualsTo(f *Form, id, message string) *Validator {
 	return &Validator{
 		Name: "equals-to",

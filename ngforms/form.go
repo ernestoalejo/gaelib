@@ -6,7 +6,7 @@ import (
 
 type Field interface {
 	Build() string
-	Validate(value string) string
+	Validate(value string) bool
 }
 
 type Form struct {
@@ -42,7 +42,8 @@ func (f *Form) Build() string {
 
 	// Build the form output
 	return fmt.Sprintf(`
-		<form class="form-horizontal" name="f" novalidate ng-init="val = false;">
+		<form class="form-horizontal" name="f" novalidate ng-init="val = false;"
+			ng-submit="f.$valid && submit()">
 			<fieldset>%s%s</fieldset>
 		</form>
 	`, legend, out)

@@ -13,6 +13,22 @@ var allowedValidators = map[string]map[string]bool{
 		"maxlength": true,
 		"pattern":   true,
 	},
+	"email": map[string]bool{
+		"required": true,
+		"email":    true,
+	},
+	"password": map[string]bool{
+		"required":  true,
+		"minlength": true,
+	},
+}
+
+// Some validators are always required by the input type
+// (they're checked in the client anyway).
+var neededValidators = map[string][]string{
+	"text":     []string{},
+	"email":    []string{"email"},
+	"password": []string{},
 }
 
 // ==================================================================
@@ -35,11 +51,20 @@ func (c *Control) Build() string {
 	}
 
 	return fmt.Sprintf(`
-		<div class="control-group" ng-class="val && f.%s.$dirty && (%s) && 'error'">
+		<div class="control-group" ng-class="val && (%s) && 'error'">
 			<label class="control-label" for="%s">%s</label>
 			<div class="controls">%%s%%s</div>
 		</div>
-	`, c.Id, errs, c.Id, c.Name)
+	`, errs, c.Id, c.Name)
+}
+
+func (f *Control) Validate(value string) bool {
+	for _, v := range f.Validations {
+		if !v.Func(value) {
+			return false
+		}
+	}
+	return true
 }
 
 // ==================================================================
@@ -72,8 +97,7 @@ func (f *InputField) Build() string {
 	}
 
 	// Validation attrs
-	errors := fmt.Sprintf(`<p class="help-block error" ng-show="val && f.%s.$dirty">`,
-		f.Control.Id)
+	errors := fmt.Sprintf(`<p class="help-block error" ng-show="val">`)
 	for _, v := range f.Control.Validations {
 		// Check if it's an accepted validator
 		allowed, ok := allowedValidators[f.Type]
@@ -94,6 +118,21 @@ func (f *InputField) Build() string {
 	}
 	errors += "</p>"
 
+	// Check that the needed validators for this input type are present
+	for _, needed := range neededValidators[f.Type] {
+		found := false
+		for _, v := range f.Control.Validations {
+			if v.Error == needed {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			panic("required validator for field " + f.Control.Id + ": " + needed)
+		}
+	}
+
 	// Build the control HTML
 	ctrl := "<input"
 	for k, v := range attrs {
@@ -104,12 +143,12 @@ func (f *InputField) Build() string {
 	return fmt.Sprintf(f.Control.Build(), ctrl, errors)
 }
 
-func (f *InputField) Validate(value string) string {
-	return ""
+func (f *InputField) Validate(value string) bool {
+	return f.Control.Validate(value)
 }
 
-// --------------------------------------------------------
-/*
+// ==================================================================
+
 type SubmitField struct {
 	Label                  string
 	CancelUrl, CancelLabel string
@@ -126,13 +165,17 @@ func (f *SubmitField) Build() string {
 	// Build the control
 	return fmt.Sprintf(`
 		<div class="form-actions">
-			<button type="submit" class="btn btn-primary">%s</button>
+			<button ng-click="val = true;" class="btn btn-primary">%s</button>
 			%s
 		</div>
 	`, f.Label, cancel)
 }
 
-// --------------------------------------------------------
+func (f *SubmitField) Validate(value string) bool {
+	return true
+}
+
+/*
 
 type SelectField struct {
 	Control        *Control
