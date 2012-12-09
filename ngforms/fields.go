@@ -97,7 +97,8 @@ func (f *InputField) Build() string {
 	}
 
 	// Validation attrs
-	errors := fmt.Sprintf(`<p class="help-block error" ng-show="val">`)
+	errors := fmt.Sprintf(`<p class="help-block error" ng-show="val && f.%s.$invalid">`,
+		f.Control.Id)
 	for _, v := range f.Control.Validations {
 		// Check if it's an accepted validator
 		allowed, ok := allowedValidators[f.Type]

@@ -2,6 +2,10 @@ package ngforms
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
+
+	"github.com/ernestokarim/gaelib/app"
 )
 
 type Field interface {
@@ -49,46 +53,49 @@ func (f *Form) Build() string {
 	`, legend, out)
 }
 
-/*
-
 func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
 	if err := r.Req.ParseForm(); err != nil {
 		return false, app.Error(err)
 	}
 
-	failed := false
 	for _, name := range f.FieldNames {
+		// Extract the field and the control
 		field := f.Fields[name]
-		if control := getControl(field); control != nil {
-			// Extract the control value and assign it
-			value := normalizeValue(control.Id, r.Req.Form)
-			control.Value = value
+		control, ok := field.(*Control)
+		if !ok {
+			continue
+		}
 
-			// Run each validation for this field
-			for _, val := range control.Validations {
-				if err := val.Func(value); err != "" {
-					failed = true
-
-					control.Error = err
-					if control.ResetValue {
-						control.Value = ""
-					}
-
-					break
-				}
-			}
+		// Extract the the value
+		value := normalizeValue(control.Id, r.Req.Form)
+		if !field.Validate(value) {
+			return false, nil
 		}
 	}
 
-	if !failed {
-		if err := r.LoadData(data); err != nil {
-			return true, err
-		}
+	if err := r.LoadData(data); err != nil {
+		return false, err
 	}
 
-	return !failed, nil
+	return true, nil
 }
 
+func normalizeValue(id string, v url.Values) string {
+	// Extract the value
+	values, ok := v[id]
+	if ok {
+		// Trim the value
+		v[id] = []string{strings.TrimSpace(values[0])}
+
+		// Return the value
+		return v[id][0]
+	}
+
+	// No value found
+	return ""
+}
+
+/*
 func (f *Form) GetControl(name string) *Control {
 	field, ok := f.Fields[name]
 	if !ok {
@@ -119,20 +126,4 @@ func getControl(f Field) *Control {
 
 	// Not a control
 	return nil
-}
-
-func normalizeValue(id string, v url.Values) string {
-	// Extract the value
-	values, ok := v[id]
-	if ok {
-		// Trim the value
-		v[id] = []string{strings.TrimSpace(values[0])}
-
-		// Return the value
-		return v[id][0]
-	}
-
-	// No value found
-	return ""
-}
-*/
+}*/
