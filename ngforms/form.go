@@ -78,7 +78,7 @@ func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
 
 	// If the validation finished succesfully; load the form
 	// data into the struct
-	if err := r.LoadData(data); err != nil {
+	if err := r.LoadJsonData(data); err != nil {
 		return false, err
 	}
 
