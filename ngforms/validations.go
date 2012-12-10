@@ -55,31 +55,32 @@ func Pattern(pattern, msg string) *Validator {
 }
 
 func Email(msg string) *Validator {
-	emails := `^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$`
-	p := Pattern(emails, msg)
-	p.Error = "email"
-	return p
+	re := regexp.MustCompile(`^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$`)
+
+	return &Validator{
+		Attrs:   map[string]string{},
+		Message: msg,
+		Error:   "email",
+		Func:    func(v string) bool { return re.MatchString(v) },
+	}
 }
 
-/*
-func EqualsTo(f *Form, id, message string) *Validator {
+func Match(f *Form, field, msg string) *Validator {
 	return &Validator{
-		Name: "equals-to",
-		Args: []interface{}{id},
-		Func: func(v string) string {
-			input := f.GetControl(id)
-			if input != nil {
-				if input.Value != v {
-					return message
-				}
-
-				return ""
+		Attrs:   map[string]string{"match": field},
+		Message: msg,
+		Error:   "match",
+		Func: func(v string) bool {
+			ctrl := f.GetControl(field)
+			if ctrl != nil {
+				return ctrl.value == v
 			}
-
-			panic("should not reach here: " + id)
+			panic("should not reach here: " + field)
 		},
 	}
 }
+
+/*
 
 func SelectValue(f *Form, id, message string) *Validator {
 	return &Validator{

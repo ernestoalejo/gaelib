@@ -20,6 +20,7 @@ var allowedValidators = map[string]map[string]bool{
 	"password": map[string]bool{
 		"required":  true,
 		"minlength": true,
+		"match":     true,
 	},
 }
 
@@ -39,6 +40,9 @@ type Control struct {
 	Validations []*Validator
 
 	errors []string
+
+	// Internal buffer used for validations between fields
+	value string
 }
 
 func (c *Control) Build() string {

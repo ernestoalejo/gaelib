@@ -71,8 +71,13 @@ func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
 		if !field.Validate(value) {
 			return false, nil
 		}
+
+		// Save the value if it's correct
+		control.value = value
 	}
 
+	// If the validation finished succesfully; load the form
+	// data into the struct
 	if err := r.LoadData(data); err != nil {
 		return false, err
 	}
@@ -95,8 +100,8 @@ func normalizeValue(id string, v url.Values) string {
 	return ""
 }
 
-/*
 func (f *Form) GetControl(name string) *Control {
+	// Obtain the field from the list
 	field, ok := f.Fields[name]
 	if !ok {
 		return nil
@@ -112,18 +117,6 @@ func getControl(f Field) *Control {
 		return input.Control
 	}
 
-	// Control for selects
-	sel, ok := f.(*SelectField)
-	if ok {
-		return sel.Control
-	}
-
-	// Control for textarea
-	textarea, ok := f.(*TextAreaField)
-	if ok {
-		return textarea.Control
-	}
-
 	// Not a control
 	return nil
-}*/
+}
