@@ -80,25 +80,24 @@ func Match(f *Form, field, msg string) *Validator {
 	}
 }
 
-/*
-
-func SelectValue(f *Form, id, message string) *Validator {
+func Select(f *Form, field, msg string) *Validator {
 	return &Validator{
-		Name: "select-value",
-		Func: func(v string) string {
-			sel, ok := f.Fields[id].(*SelectField)
+		Attrs:   map[string]string{},
+		Message: msg,
+		Error:   "select",
+		Func: func(v string) bool {
+			sel, ok := f.Fields[field].(*SelectField)
 			if ok {
 				for _, value := range sel.Values {
 					if v == value {
-						return ""
+						return true
 					}
 				}
 
-				return message
+				return false
 			}
 
-			panic("should not reach here: " + id)
+			panic("select field not found in form (or not a select): " + field)
 		},
 	}
 }
-*/

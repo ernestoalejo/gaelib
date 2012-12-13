@@ -181,7 +181,7 @@ func (f *SubmitField) Validate(value string) bool {
 	return true
 }
 
-/*
+// ==================================================================
 
 type SelectField struct {
 	Control        *Control
@@ -201,6 +201,26 @@ func (f *SelectField) Build() string {
 		attrs["class"] = strings.Join(f.Class, " ")
 	}
 
+	// Add the validators
+	errors := fmt.Sprintf(`<p class="help-block error" ng-show="val && f.%s.$invalid">`,
+		f.Control.Id)
+	for _, v := range f.Control.Validations {
+		// Fail early if it's not a valid one
+		if v.Error != "required" && v.Error != "select" {
+			panic("validator not allowed in select " + f.Control.Id + ": " + v.Error)
+		}
+
+		// Add the attributes and errors
+		for k, v := range v.Attrs {
+			attrs[k] = v
+		}
+		errors += fmt.Sprintf(`<span ng-show="f.%s.$error.%s">%s</span>`, f.Control.Id,
+			v.Error, v.Message)
+		f.Control.errors = append(f.Control.errors, v.Error)
+	}
+	errors += "</p>"
+
+	// Build the tag
 	ctrl := "<select"
 	for k, v := range attrs {
 		ctrl += fmt.Sprintf(" %s=\"%s\"", k, v)
@@ -221,11 +241,6 @@ func (f *SelectField) Build() string {
 			// Hide the option if it's the default blank one
 			attrs["style"] = "display: none;"
 		} else {
-			// If it's the currently select one, select it again
-			if f.Control.Value == f.Values[i] {
-				attrs["selected"] = "selected"
-			}
-
 			// Set the value
 			attrs["value"] = f.Values[i]
 		}
@@ -239,13 +254,16 @@ func (f *SelectField) Build() string {
 	}
 
 	// Finish the control build
-	ctrl += "</select>"
+	ctrl += "</select>" + errors
 
 	return fmt.Sprintf(f.Control.Build(), ctrl)
 }
 
-// --------------------------------------------------------
+func (f *SelectField) Validate(value string) bool {
+	return f.Control.Validate(value)
+}
 
+/*
 type TextAreaField struct {
 	Control     *Control
 	Class       []string
