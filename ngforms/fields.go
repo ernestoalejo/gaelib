@@ -254,16 +254,17 @@ func (f *SelectField) Build() string {
 	}
 
 	// Finish the control build
-	ctrl += "</select>" + errors
+	ctrl += "</select>"
 
-	return fmt.Sprintf(f.Control.Build(), ctrl)
+	return fmt.Sprintf(f.Control.Build(), ctrl, errors)
 }
 
 func (f *SelectField) Validate(value string) bool {
 	return f.Control.Validate(value)
 }
 
-/*
+// ==================================================================
+
 type TextAreaField struct {
 	Control     *Control
 	Class       []string
@@ -272,37 +273,46 @@ type TextAreaField struct {
 }
 
 func (f *TextAreaField) Build() string {
-	// Tag attributes
+	// Initial arguments
 	attrs := map[string]string{
-		"rows":        strconv.FormatInt(int64(f.Rows), 10),
 		"id":          f.Control.Id,
 		"name":        f.Control.Id,
 		"placeholder": f.PlaceHolder,
+		"class":       strings.Join(f.Class, " "),
+		"ng-model":    "data." + f.Control.Id,
+		"rows":        fmt.Sprintf("%d", f.Rows),
 	}
 
-	// The CSS classes
-	if f.Class != nil {
-		attrs["class"] = strings.Join(f.Class, " ")
+	// Validation attrs
+	errors := fmt.Sprintf(`<p class="help-block error" ng-show="val && f.%s.$invalid">`,
+		f.Control.Id)
+	for _, v := range f.Control.Validations {
+		// Check if it's an accepted validator
+		allowed := allowedValidators["text"]
+		if _, ok := allowed[v.Error]; !ok {
+			panic("validator not allowed in " + f.Control.Id + ": " + v.Error)
+		}
+
+		// Add the attributes and errors
+		for k, v := range v.Attrs {
+			attrs[k] = v
+		}
+		errors += fmt.Sprintf(`<span ng-show="f.%s.$error.%s">%s</span>`, f.Control.Id,
+			v.Error, v.Message)
+		f.Control.errors = append(f.Control.errors, v.Error)
 	}
+	errors += "</p>"
 
 	// Build the control HTML
 	ctrl := "<textarea"
 	for k, v := range attrs {
 		ctrl += fmt.Sprintf(" %s=\"%s\"", k, v)
 	}
-	ctrl += ">" + template.HTMLEscapeString(f.Control.Value) + "</textarea>"
+	ctrl += "></textarea>"
 
-	return fmt.Sprintf(f.Control.Build(), ctrl)
+	return fmt.Sprintf(f.Control.Build(), ctrl, errors)
 }
 
-// --------------------------------------------------------
-
-type HiddenField struct {
-	Name, Value string
+func (f *TextAreaField) Validate(value string) bool {
+	return f.Control.Validate(value)
 }
-
-func (f *HiddenField) Build() string {
-	return fmt.Sprintf(`<input type="hidden" name="%s" value="%s">`, f.Name,
-		template.HTMLEscapeString(f.Value))
-}
-*/
