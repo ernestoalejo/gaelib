@@ -54,11 +54,11 @@ func (f *Form) Build() string {
 	`, legend, out)
 }
 
-func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
+func (f *Form) Validate(r *app.Request, data interface{}) error {
 	// Read the whole body in a buffer
 	var buf bytes.Buffer
 	if _, err := buf.ReadFrom(r.Req.Body); err != nil {
-		return false, app.Error(err)
+		return app.Error(err)
 	}
 
 	// Create a copy, and store the first read one as the
@@ -69,7 +69,7 @@ func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
 	// Read the map of values from the first copy
 	m := make(map[string]interface{})
 	if err := r.LoadJsonData(&m); err != nil {
-		return false, err
+		return err
 	}
 
 	// Save the second copy as the new request body
@@ -83,10 +83,10 @@ func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
 			continue
 		}
 
-		// Extract the the value
+		// Extract the value
 		value := normalizeValue(control.Id, m)
 		if !field.Validate(value) {
-			return false, nil
+			return app.Errorf("validation failed for field %s: %s", control.Id, value)
 		}
 
 		// Save the value if it's correct
@@ -96,10 +96,10 @@ func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
 	// If the validation finished succesfully; load the form
 	// data into the struct
 	if err := r.LoadJsonData(data); err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }
 
 func normalizeValue(id string, m map[string]interface{}) string {

@@ -30,7 +30,7 @@ func LargerThan(value int, msg string) *Validator {
 		Attrs:   map[string]string{"ng-minlength": fmt.Sprintf("%d", value)},
 		Message: msg,
 		Error:   "minlength",
-		Func:    func(v string) bool { return len(v) > value },
+		Func:    func(v string) bool { return len(v) >= value },
 	}
 }
 
@@ -39,7 +39,7 @@ func ShorterThan(value int, msg string) *Validator {
 		Attrs:   map[string]string{"ng-maxlength": fmt.Sprintf("%d", value)},
 		Message: msg,
 		Error:   "maxlength",
-		Func:    func(v string) bool { return len(v) < value },
+		Func:    func(v string) bool { return len(v) <= value },
 	}
 }
 
