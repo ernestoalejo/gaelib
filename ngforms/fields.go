@@ -192,8 +192,9 @@ type SelectField struct {
 func (f *SelectField) Build() string {
 	// The select tag attributes
 	attrs := map[string]string{
-		"id":   f.Control.Id,
-		"name": f.Control.Id,
+		"id":       f.Control.Id,
+		"name":     f.Control.Id,
+		"ng-model": "data." + f.Control.Id,
 	}
 
 	// The CSS classes
@@ -228,29 +229,12 @@ func (f *SelectField) Build() string {
 	ctrl += ">"
 
 	// Assert the same length precondition, because the error is not
-	// very descriptive
+	// very descriptive. Then add the option tags to the select field.
 	if len(f.Labels) != len(f.Values) {
 		panic("labels and values should have the same size")
 	}
-
 	for i, label := range f.Labels {
-		// Option tag attributes
-		attrs := map[string]string{}
-
-		if f.Values[i] == "" {
-			// Hide the option if it's the default blank one
-			attrs["style"] = "display: none;"
-		} else {
-			// Set the value
-			attrs["value"] = f.Values[i]
-		}
-
-		// Build the HTML of the option tag
-		ctrl += "<option"
-		for k, v := range attrs {
-			ctrl += fmt.Sprintf(" %s=\"%s\"", k, v)
-		}
-		ctrl += ">" + label + "</option>"
+		ctrl += fmt.Sprintf(`<option value="%s">%s</option>`, f.Values[i], label)
 	}
 
 	// Finish the control build

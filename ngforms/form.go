@@ -1,8 +1,9 @@
 package ngforms
 
 import (
+	"bytes"
 	"fmt"
-	"net/url"
+	"io/ioutil"
 	"strings"
 
 	"github.com/ernestokarim/gaelib/app"
@@ -54,20 +55,36 @@ func (f *Form) Build() string {
 }
 
 func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
-	if err := r.Req.ParseForm(); err != nil {
+	// Read the whole body in a buffer
+	var buf bytes.Buffer
+	if _, err := buf.ReadFrom(r.Req.Body); err != nil {
 		return false, app.Error(err)
 	}
+
+	// Create a copy, and store the first read one as the
+	// request body
+	r.Req.Body = ioutil.NopCloser(&buf)
+	nbuf := ioutil.NopCloser(bytes.NewBuffer(buf.Bytes()))
+
+	// Read the map of values from the first copy
+	m := make(map[string]interface{})
+	if err := r.LoadJsonData(&m); err != nil {
+		return false, err
+	}
+
+	// Save the second copy as the new request body
+	r.Req.Body = nbuf
 
 	for _, name := range f.FieldNames {
 		// Extract the field and the control
 		field := f.Fields[name]
-		control, ok := field.(*Control)
-		if !ok {
+		control := getControl(field)
+		if control == nil {
 			continue
 		}
 
 		// Extract the the value
-		value := normalizeValue(control.Id, r.Req.Form)
+		value := normalizeValue(control.Id, m)
 		if !field.Validate(value) {
 			return false, nil
 		}
@@ -85,15 +102,15 @@ func (f *Form) Validate(r *app.Request, data interface{}) (bool, error) {
 	return true, nil
 }
 
-func normalizeValue(id string, v url.Values) string {
+func normalizeValue(id string, m map[string]interface{}) string {
 	// Extract the value
-	values, ok := v[id]
+	value, ok := m[id]
 	if ok {
-		// Trim the value
-		v[id] = []string{strings.TrimSpace(values[0])}
-
-		// Return the value
-		return v[id][0]
+		str, ok := value.(string)
+		if ok {
+			// Trim the value before returning it
+			return strings.TrimSpace(str)
+		}
 	}
 
 	// No value found
@@ -111,10 +128,19 @@ func (f *Form) GetControl(name string) *Control {
 }
 
 func getControl(f Field) *Control {
-	// Control for inputs
 	input, ok := f.(*InputField)
 	if ok {
 		return input.Control
+	}
+
+	sel, ok := f.(*SelectField)
+	if ok {
+		return sel.Control
+	}
+
+	ta, ok := f.(*TextAreaField)
+	if ok {
+		return ta.Control
 	}
 
 	// Not a control
