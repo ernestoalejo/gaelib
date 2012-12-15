@@ -78,6 +78,10 @@ func (r *Request) IsPOST() bool {
 	return r.Req.Method == "POST"
 }
 
+func (r *Request) IsDELETE() bool {
+	return r.Req.Method == "DELETE"
+}
+
 func (r *Request) Path() string {
 	u := r.Req.URL.Path
 	query := r.Req.URL.RawQuery
