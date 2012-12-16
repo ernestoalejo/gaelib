@@ -12,6 +12,8 @@ import (
 var (
 	templatesCache = map[string]*template.Template{}
 	templatesFuncs = template.FuncMap{}
+	leftDelim      = "{{"
+	rightDelim     = "}}"
 )
 
 func init() {
@@ -45,6 +47,11 @@ func AddTemplateFunc(name string, f interface{}) {
 	templatesFuncs[name] = f
 }
 
+func SetDelims(left, right string) {
+	leftDelim = left
+	rightDelim = right
+}
+
 func Template(w io.Writer, names []string, data interface{}) error {
 	// Build the key for this template
 	cname := ""
@@ -57,7 +64,9 @@ func Template(w io.Writer, names []string, data interface{}) error {
 	t, ok := templatesCache[cname]
 	if !ok || appengine.IsDevAppServer() {
 		var err error
-		t, err = template.New(cname).Funcs(templatesFuncs).ParseFiles(names...)
+		t = template.New(cname).Delims(leftDelim, rightDelim)
+
+		t, err = t.Funcs(templatesFuncs).ParseFiles(names...)
 		if err != nil {
 			return Error(err)
 		}
