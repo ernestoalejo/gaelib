@@ -12,8 +12,6 @@ import (
 var (
 	templatesCache = map[string]*template.Template{}
 	templatesFuncs = template.FuncMap{}
-	leftDelim      = "{{"
-	rightDelim     = "}}"
 )
 
 func init() {
@@ -47,12 +45,11 @@ func AddTemplateFunc(name string, f interface{}) {
 	templatesFuncs[name] = f
 }
 
-func SetDelims(left, right string) {
-	leftDelim = left
-	rightDelim = right
+func Template(w io.Writer, names []string, data interface{}) error {
+	return TemplateDelims(w, names, data, "{{", "}}")
 }
 
-func Template(w io.Writer, names []string, data interface{}) error {
+func TemplateDelims(w io.Writer, names []string, data interface{}, leftDelim, rightDelim string) error {
 	// Build the key for this template
 	cname := ""
 	for i, name := range names {

@@ -109,6 +109,10 @@ func (r *Request) Template(names []string, data interface{}) error {
 	return Template(r.W, names, data)
 }
 
+func (r *Request) TemplateDelims(names []string, data interface{}, leftDelim, rightDelim string) error {
+	return TemplateDelims(r.W, names, data, leftDelim, rightDelim)
+}
+
 func (r *Request) JsonResponse(data interface{}) error {
 	if err := json.NewEncoder(r.W).Encode(data); err != nil {
 		return Error(err)
