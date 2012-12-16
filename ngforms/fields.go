@@ -170,7 +170,7 @@ func (f *SubmitField) Build() string {
 	// Build the control
 	return fmt.Sprintf(`
 		<div class="form-actions">
-			<button ng-click="val = true;" class="btn btn-primary"
+			<button ng-click="trySubmit(); val = true;" class="btn btn-primary"
 				ng-disabled="val && !f.$valid">%s</button>
 			%s
 		</div>
