@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -56,6 +57,10 @@ func (r *Request) LoadData(data interface{}) error {
 
 func (r *Request) LoadJsonData(data interface{}) error {
 	if err := json.NewDecoder(r.Req.Body).Decode(data); err != nil {
+		if err == io.EOF {
+			return nil
+		}
+
 		return Error(err)
 	}
 
