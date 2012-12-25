@@ -103,18 +103,29 @@ func (f *Form) Validate(r *app.Request, data interface{}) error {
 }
 
 func normalizeValue(id string, m map[string]interface{}) string {
-	// Extract the value
+	// Extract the value or its str counterpart ot validate it
+	if v, ok := extractValue(id, m); ok {
+		return v
+	}
+	if v, ok := extractValue("str"+id, m); ok {
+		return v
+	}
+
+	return ""
+}
+
+func extractValue(id string, m map[string]interface{}) (string, bool) {
 	value, ok := m[id]
 	if ok {
 		str, ok := value.(string)
 		if ok {
 			// Trim the value before returning it
-			return strings.TrimSpace(str)
+			return strings.TrimSpace(str), true
 		}
 	}
 
 	// No value found
-	return ""
+	return "", false
 }
 
 func (f *Form) GetControl(name string) *Control {

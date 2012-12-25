@@ -54,6 +54,14 @@ func (c *Control) Build() string {
 		errs = errs[:len(errs)-4]
 	}
 
+	if c.Name == "" {
+		return fmt.Sprintf(`
+			<div class="control-group" ng-class="val && (%s) && 'error'">
+				%%s%%s
+			</div>
+		`, errs)
+	}
+
 	return fmt.Sprintf(`
 		<div class="control-group" ng-class="val && (%s) && 'error'">
 			<label class="control-label" for="%s">%s</label>
@@ -79,6 +87,8 @@ type InputField struct {
 	Class              []string
 	Disabled, ReadOnly bool
 	PlaceHolder        string
+
+	Attrs map[string]string
 }
 
 func (f *InputField) Build() string {
@@ -90,6 +100,10 @@ func (f *InputField) Build() string {
 		"placeholder": f.PlaceHolder,
 		"class":       strings.Join(f.Class, " "),
 		"ng-model":    "data." + f.Control.Id,
+	}
+
+	for k, v := range f.Attrs {
+		attrs[k] = v
 	}
 
 	// Flags
