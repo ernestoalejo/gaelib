@@ -1,25 +1,34 @@
 package ngforms
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
-	"strings"
-
-	"github.com/ernestokarim/gaelib/app"
 )
 
 type Field interface {
-	Build() string
-	Validate(value string) bool
+	Build(form *Form) string
 }
+
+type FieldList []Field
+type ValidationMap map[string][]*Validator
 
 type Form struct {
-	Name       string
-	FieldNames []string
-	Fields     map[string]Field
+	Fields      FieldList
+	Validations ValidationMap
 }
 
+func (f *Form) Build() string {
+	var result string
+	for _, field := range f.Fields {
+		result += field.Build(f)
+	}
+
+	return fmt.Sprintf(`
+      <form class="form-horizontal" name="f" novalidate ng-init="val = false;"
+        ng-submit="f.$valid && submit()"><fieldset>%s</fieldset></form>
+    `, result)
+}
+
+/*
 func New() *Form {
 	return &Form{
 		FieldNames: make([]string, 0),
@@ -157,3 +166,4 @@ func getControl(f Field) *Control {
 	// Not a control
 	return nil
 }
+*/

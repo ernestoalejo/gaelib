@@ -65,6 +65,7 @@ func Email(msg string) *Validator {
 	}
 }
 
+/*
 func Match(f *Form, field, msg string) *Validator {
 	return &Validator{
 		Attrs:   map[string]string{"match": field},
@@ -101,3 +102,4 @@ func Select(f *Form, field, msg string) *Validator {
 		},
 	}
 }
+*/
