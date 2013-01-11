@@ -39,7 +39,7 @@ func BuildControl(form *Form, id, name, help string) (map[string]string, string)
         <label class="control-label" for="%s">%s</label>
         <div class="controls">%%s%s</div>
       </div>
-	`, errs, name, messages)
+	`, errs, id, name, messages)
 }
 
 // ==================================================================
