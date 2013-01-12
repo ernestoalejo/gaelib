@@ -9,6 +9,7 @@ import (
 
 	"appengine"
 
+	"github.com/ernestokarim/gaelib/apperrors"
 	"github.com/gorilla/schema"
 )
 
@@ -126,12 +127,12 @@ func (r *Request) JsonResponse(data interface{}) error {
 }
 
 func (r *Request) processError(err error) {
-	e, ok := (err).(*AppError)
+	e, ok := (err).(*apperrors.Error)
 	if !ok {
-		e = Error(err).(*AppError)
+		e = Error(err).(*apperrors.Error)
 	}
 
-	e.Log(r.C)
+	LogError(r.C, e)
 
 	h, ok := errorHandlers[e.Code]
 	if ok {

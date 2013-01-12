@@ -5,16 +5,17 @@ import (
 	"strings"
 )
 
-func BuildControl(form *Form, id, name, help string) (map[string]string, string) {
+func BuildControl(form Form, id, name, help string) (map[string]string, string) {
 	var errs, messages string
 	attrs := map[string]string{}
 
-	if _, ok := form.Validations[id]; ok {
+	validationMap := form.Validations()
+	if _, ok := validationMap[id]; ok {
 		messages = fmt.Sprintf(`
 	        <p class="help-block error" ng-show="val && f.%s.$invalid">
 		`, id)
 
-		for _, val := range form.Validations[id] {
+		for _, val := range validationMap[id] {
 			update(attrs, val.Attrs)
 			errs += fmt.Sprintf("f.%s.$error.%s || ", id, val.Error)
 			messages += fmt.Sprintf(`
@@ -54,7 +55,7 @@ type InputField struct {
 	Attrs map[string]string
 }
 
-func (f *InputField) Build(form *Form) string {
+func (f *InputField) Build(form Form) string {
 	// Initial arguments
 	attrs := map[string]string{
 		"type":        f.Type,
@@ -87,7 +88,7 @@ type SubmitField struct {
 	CancelLabel string
 }
 
-func (f *SubmitField) Build(form *Form) string {
+func (f *SubmitField) Build(form Form) string {
 	// Build the cancel button if present
 	cancel := ""
 	if f.CancelLabel != "" && f.CancelUrl != "" {

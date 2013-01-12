@@ -1,24 +1,32 @@
 package ngforms
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strings"
+
+	"github.com/ernestokarim/gaelib/apperrors"
 )
 
 type Field interface {
-	Build(form *Form) string
+	Build(form Form) string
 }
 
 type FieldList []Field
 type ValidationMap map[string][]*Validator
 
-type Form struct {
-	Fields      FieldList
-	Validations ValidationMap
+type Form interface {
+	Fields() FieldList
+	Validations() ValidationMap
 }
 
-func (f *Form) Build() string {
+// Build the form returning the generated HTML
+func Build(f Form) string {
 	var result string
-	for _, field := range f.Fields {
+	for _, field := range f.Fields() {
 		result += field.Build(f)
 	}
 
@@ -28,91 +36,53 @@ func (f *Form) Build() string {
     `, result)
 }
 
-/*
-func New() *Form {
-	return &Form{
-		FieldNames: make([]string, 0),
-		Fields:     make(map[string]Field),
+// Validate the form.
+// Returns a boolean indicating if the data was valid according
+// to the validations defined on f. It returns an error too.
+func Validate(r *http.Request, f Form) (bool, error) {
+	// Copy the body to a buffer so we can use it twice
+	var buf *bytes.Buffer
+	if _, err := buf.ReadFrom(r.Body); err != nil {
+		return false, apperrors.New(err)
 	}
-}
-
-func (f *Form) AddField(name string, field Field) {
-	f.FieldNames = append(f.FieldNames, name)
-	f.Fields[name] = field
-}
-
-func (f *Form) Build() string {
-	// Build each field
-	out := ""
-	for _, name := range f.FieldNames {
-		out += f.Fields[name].Build()
-	}
-
-	// Set the form legend if present
-	legend := ""
-	if f.Name != "" {
-		legend = "<legend>" + f.Name + "</legend>"
-	}
-
-	// Build the form output
-	return fmt.Sprintf(`
-		<form class="form-horizontal" name="f" novalidate ng-init="val = false;"
-			ng-submit="f.$valid && submit()">
-			<fieldset>%s%s</fieldset>
-		</form>
-	`, legend, out)
-}
-
-func (f *Form) Validate(r *app.Request, data interface{}) error {
-	// Read the whole body in a buffer
-	var buf bytes.Buffer
-	if _, err := buf.ReadFrom(r.Req.Body); err != nil {
-		return app.Error(err)
-	}
-
-	// Create a copy, and store the first read one as the
-	// request body
-	r.Req.Body = ioutil.NopCloser(&buf)
 	nbuf := ioutil.NopCloser(bytes.NewBuffer(buf.Bytes()))
+	r.Body = nbuf
 
-	// Read the map of values from the first copy
 	m := make(map[string]interface{})
-	if err := r.LoadJsonData(&m); err != nil {
-		return err
+	if err := json.NewDecoder(buf).Decode(&m); err != nil {
+		return false, apperrors.New(err)
 	}
 
-	// Save the second copy as the new request body
-	r.Req.Body = nbuf
-
-	for _, name := range f.FieldNames {
-		// Extract the field and the control
-		field := f.Fields[name]
-		control := getControl(field)
-		if control == nil {
+	fields := f.Fields()
+	validations := f.Validations()
+	for _, field := range fields {
+		id := getId(field)
+		if id == "" {
 			continue
 		}
 
-		// Extract the value
-		value := normalizeValue(control.Id, m)
-		if !field.Validate(value) {
-			return app.Errorf("validation failed for field %s: %s", control.Id, value)
+		// Skip fields without validation constrainst
+		if _, ok := validations[id]; !ok {
+			continue
 		}
 
-		// Save the value if it's correct
-		control.value = value
+		value := normalizeValue(id, m)
+		for _, val := range validations[id] {
+			if !val.Func(value) {
+				return false, nil
+			}
+		}
 	}
 
-	// If the validation finished succesfully; load the form
-	// data into the struct
-	if err := r.LoadJsonData(data); err != nil {
-		return err
+	if err := json.NewDecoder(r.Body).Decode(f); err != nil {
+		return false, apperrors.New(err)
 	}
 
-	return nil
+	return true, nil
 }
 
+// Extract the value or its str counterpart to validate it
 func normalizeValue(id string, m map[string]interface{}) string {
-	// Extract the value or its str counterpart ot validate it
 	if v, ok := extractValue(id, m); ok {
 		return v
 	}
@@ -123,47 +93,34 @@ func normalizeValue(id string, m map[string]interface{}) string {
 	return ""
 }
 
+// Extract a value from the body data, trimming it
 func extractValue(id string, m map[string]interface{}) (string, bool) {
 	value, ok := m[id]
 	if ok {
 		str, ok := value.(string)
 		if ok {
-			// Trim the value before returning it
 			return strings.TrimSpace(str), true
 		}
 	}
 
-	// No value found
 	return "", false
 }
 
-func (f *Form) GetControl(name string) *Control {
-	// Obtain the field from the list
-	field, ok := f.Fields[name]
-	if !ok {
-		return nil
-	}
-
-	return getControl(field)
-}
-
-func getControl(f Field) *Control {
+func getId(f Field) string {
 	input, ok := f.(*InputField)
 	if ok {
-		return input.Control
+		return input.Id
 	}
+	/*
+		sel, ok := f.(*SelectField)
+		if ok {
+			return sel.Control
+		}
 
-	sel, ok := f.(*SelectField)
-	if ok {
-		return sel.Control
-	}
+		ta, ok := f.(*TextAreaField)
+		if ok {
+			return ta.Control
+		}*/
 
-	ta, ok := f.(*TextAreaField)
-	if ok {
-		return ta.Control
-	}
-
-	// Not a control
-	return nil
+	return ""
 }
-*/

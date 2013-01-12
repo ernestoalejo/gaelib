@@ -2,61 +2,42 @@ package app
 
 import (
 	"bytes"
-	"fmt"
-	"runtime/debug"
 
 	"conf"
+	"github.com/ernestokarim/gaelib/apperrors"
 	"github.com/ernestokarim/gaelib/mail"
 
 	"appengine"
 )
 
-type AppError struct {
-	CallStack   string
-	OriginalErr error
-	Code        int
-}
+func LogError(c appengine.Context, err error) {
+	e, ok := (err).(*apperrors.Error)
+	if !ok {
+		e = Error(err).(*apperrors.Error)
+	}
 
-func (err *AppError) Error() string {
-	return fmt.Sprintf("[status code %d] %s\n\n%s", err.Code, err.OriginalErr, err.CallStack)
-}
-
-func (err *AppError) Log(c appengine.Context) {
-	c.Errorf("%s", err.Error())
-	sendErrorByEmail(c, err.Error())
+	c.Errorf("%s", e.Error())
+	sendErrorByEmail(c, e.Error())
 }
 
 func Error(original error) error {
-	return &AppError{
-		OriginalErr: original,
-		Code:        500,
-		CallStack:   fmt.Sprintf("%s", debug.Stack()),
-	}
+	return apperrors.New(original)
 }
 
 func Errorf(format string, args ...interface{}) error {
-	return Error(fmt.Errorf(format, args...))
+	return apperrors.Format(format, args...)
 }
 
 func NotFound() error {
-	return &AppError{
-		Code:      404,
-		CallStack: fmt.Sprintf("%s", debug.Stack()),
-	}
+	return apperrors.Code(404)
 }
 
 func Forbidden() error {
-	return &AppError{
-		Code:      403,
-		CallStack: fmt.Sprintf("%s", debug.Stack()),
-	}
+	return apperrors.Code(403)
 }
 
 func NotAllowed() error {
-	return &AppError{
-		Code:      405,
-		CallStack: fmt.Sprintf("%s", debug.Stack()),
-	}
+	return apperrors.Code(405)
 }
 
 func sendErrorByEmail(c appengine.Context, errorStr string) {
