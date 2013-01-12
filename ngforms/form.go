@@ -41,7 +41,7 @@ func Build(f Form) string {
 // to the validations defined on f. It returns an error too.
 func Validate(r *http.Request, f Form) (bool, error) {
 	// Copy the body to a buffer so we can use it twice
-	var buf *bytes.Buffer
+	buf := new(bytes.Buffer)
 	if _, err := buf.ReadFrom(r.Body); err != nil {
 		return false, apperrors.New(err)
 	}
