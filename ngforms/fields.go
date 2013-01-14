@@ -56,7 +56,6 @@ type InputField struct {
 }
 
 func (f *InputField) Build(form Form) string {
-	// Initial arguments
 	attrs := map[string]string{
 		"type":        f.Type,
 		"id":          f.Id,
@@ -70,7 +69,6 @@ func (f *InputField) Build(form Form) string {
 	controlAttrs, control := BuildControl(form, f.Id, f.Name, f.Help)
 	update(attrs, controlAttrs)
 
-	// Build the control HTML
 	ctrl := "<input"
 	for k, v := range attrs {
 		ctrl += fmt.Sprintf(` %s="%s"`, k, v)
@@ -89,14 +87,12 @@ type SubmitField struct {
 }
 
 func (f *SubmitField) Build(form Form) string {
-	// Build the cancel button if present
 	cancel := ""
 	if f.CancelLabel != "" && f.CancelUrl != "" {
 		cancel = fmt.Sprintf(`&nbsp;&nbsp;&nbsp;<a href="%s" class="btn">%s</a>`,
 			f.CancelUrl, f.CancelLabel)
 	}
 
-	// Build the control
 	return fmt.Sprintf(`
 		<div class="form-actions">
 			<button ng-click="trySubmit(); val = true;" class="btn btn-primary"
@@ -104,6 +100,38 @@ func (f *SubmitField) Build(form Form) string {
 			%s
 		</div>
 	`, f.Label, cancel)
+}
+
+// ==================================================================
+
+type TextAreaField struct {
+	Id, Name    string
+	Help        string
+	Class       []string
+	Rows        int
+	PlaceHolder string
+}
+
+func (f *TextAreaField) Build(form Form) string {
+	attrs := map[string]string{
+		"id":          f.Id,
+		"name":        f.Id,
+		"placeholder": f.PlaceHolder,
+		"class":       strings.Join(f.Class, " "),
+		"ng-model":    "data." + f.Id,
+		"rows":        fmt.Sprintf("%d", f.Rows),
+	}
+
+	controlAttrs, control := BuildControl(form, f.Id, f.Name, f.Help)
+	update(attrs, controlAttrs)
+
+	ctrl := "<textarea"
+	for k, v := range attrs {
+		ctrl += fmt.Sprintf(` %s="%s"`, k, v)
+	}
+	ctrl += "></textarea>"
+
+	return fmt.Sprintf(control, ctrl)
 }
 
 /*
@@ -171,62 +199,7 @@ func (f *SelectField) Build() string {
 
 func (f *SelectField) Validate(value string) bool {
 	return f.Control.Validate(value)
-}
-
-// ==================================================================
-
-type TextAreaField struct {
-	Control     *Control
-	Class       []string
-	Rows        int
-	PlaceHolder string
-}
-
-func (f *TextAreaField) Build() string {
-	// Initial arguments
-	attrs := map[string]string{
-		"id":          f.Control.Id,
-		"name":        f.Control.Id,
-		"placeholder": f.PlaceHolder,
-		"class":       strings.Join(f.Class, " "),
-		"ng-model":    "data." + f.Control.Id,
-		"rows":        fmt.Sprintf("%d", f.Rows),
-	}
-
-	// Validation attrs
-	errors := fmt.Sprintf(`<p class="help-block error" ng-show="val && f.%s.$invalid">`,
-		f.Control.Id)
-	for _, v := range f.Control.Validations {
-		// Check if it's an accepted validator
-		allowed := allowedValidators["text"]
-		if _, ok := allowed[v.Error]; !ok {
-			panic("validator not allowed in " + f.Control.Id + ": " + v.Error)
-		}
-
-		// Add the attributes and errors
-		for k, v := range v.Attrs {
-			attrs[k] = v
-		}
-		errors += fmt.Sprintf(`<span ng-show="f.%s.$error.%s">%s</span>`, f.Control.Id,
-			v.Error, v.Message)
-		f.Control.errors = append(f.Control.errors, v.Error)
-	}
-	errors += "</p>"
-
-	// Build the control HTML
-	ctrl := "<textarea"
-	for k, v := range attrs {
-		ctrl += fmt.Sprintf(" %s=\"%s\"", k, v)
-	}
-	ctrl += "></textarea>"
-
-	return fmt.Sprintf(f.Control.Build(), ctrl, errors)
-}
-
-func (f *TextAreaField) Validate(value string) bool {
-	return f.Control.Validate(value)
-}
-*/
+}*/
 
 // ==================================================================
 
