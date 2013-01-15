@@ -40,6 +40,10 @@ func Router(routes map[string]Handler) {
 			}
 		}
 
-		r.Handle(parts[1], Handler(handler)).Methods(parts[0])
+		if len(parts[0]) == 0 {
+			r.Handle(parts[1], Handler(handler))
+		} else {
+			r.Handle(parts[1], Handler(handler)).Methods(parts[0])
+		}
 	}
 }
