@@ -10,22 +10,25 @@ func BuildControl(form Form, id, name, help string) (map[string]string, string) 
 	attrs := map[string]string{}
 
 	validationMap := form.Validations()
-	if _, ok := validationMap[id]; ok {
-		messages = fmt.Sprintf(`
-	        <p class="help-block error" ng-show="val && f.%s.$invalid">
-		`, id)
-
-		for _, val := range validationMap[id] {
-			update(attrs, val.Attrs)
-			errs += fmt.Sprintf("f.%s.$error.%s || ", id, val.Error)
-			messages += fmt.Sprintf(`
-				<span ng-show="f.%s.$error.%s">%s</span>
-			`, id, val.Error, val.Message)
-		}
-
-		messages += `</p>`
-		errs = errs[:len(errs)-4]
+	validations, ok := validationMap[id]
+	if !ok {
+		panic("control without validations: " + id)
 	}
+
+	messages = fmt.Sprintf(`
+        <p class="help-block error" ng-show="val && f.%s.$invalid">
+	`, id)
+
+	for _, val := range validations {
+		update(attrs, val.Attrs)
+		errs += fmt.Sprintf("f.%s.$error.%s || ", id, val.Error)
+		messages += fmt.Sprintf(`
+			<span ng-show="f.%s.$error.%s">%s</span>
+		`, id, val.Error, val.Message)
+	}
+
+	messages += `</p>`
+	errs = errs[:len(errs)-4]
 
 	if name == "" {
 		return attrs, fmt.Sprintf(`
@@ -56,6 +59,10 @@ type InputField struct {
 }
 
 func (f *InputField) Build(form Form) string {
+	if f.Type == "" {
+		panic("input type should not be empty: " + f.Id)
+	}
+
 	attrs := map[string]string{
 		"type":        f.Type,
 		"id":          f.Id,
