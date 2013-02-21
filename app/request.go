@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"appengine"
@@ -113,6 +114,22 @@ func (r *Request) RedirectPermanently(path string) error {
 
 func (r *Request) Template(names []string, data interface{}) error {
 	return Template(r.W, names, data)
+}
+
+func (r *Request) TemplateBase(names []string, data interface{}) error {
+	dir := "templates"
+	if r.Req.Header.Get("X-Request-From") == "cb" {
+		dir = filepath.Join("client", "app")
+	}
+
+	return ExecTemplate(&TemplateConfig{
+		LeftDelim:  `{%`,
+		RightDelim: `%}`,
+		Names:      names,
+		W:          r.W,
+		Data:       data,
+		Dir:        dir,
+	})
 }
 
 func (r *Request) TemplateDelims(names []string, data interface{}, leftDelim, rightDelim string) error {
