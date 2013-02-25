@@ -16,15 +16,16 @@ func BuildControl(form Form, id, name, help string) (map[string]string, string) 
 	}
 
 	d := getFormData(form)
+	fid := fmt.Sprintf("%s%s", d.Name, id)
 	messages = fmt.Sprintf(`
         <p class="help-block error" ng-show="%s.val && %s.%s.$invalid">
-	`, d.Name, d.Name, id)
+	`, d.Name, d.Name, fid)
 	for _, val := range validations {
 		update(attrs, val.Attrs)
-		errs += fmt.Sprintf("%s.%s.$error.%s || ", d.Name, id, val.Error)
+		errs += fmt.Sprintf("%s.%s.$error.%s || ", d.Name, fid, val.Error)
 		messages += fmt.Sprintf(`
 			<span ng-show="%s.%s.$error.%s">%s</span>
-		`, d.Name, id, val.Error, val.Message)
+		`, d.Name, fid, val.Error, val.Message)
 	}
 	messages += `</p>`
 	errs = errs[:len(errs)-4]
@@ -42,7 +43,7 @@ func BuildControl(form Form, id, name, help string) (map[string]string, string) 
         <label class="control-label" for="%s">%s</label>
         <div class="controls">%%s%s</div>
       </div>
-	`, d.Name, errs, id, name, messages)
+	`, d.Name, errs, fid, name, messages)
 }
 
 // ==================================================================
@@ -65,8 +66,8 @@ func (f *InputField) Build(form Form) string {
 	d := getFormData(form)
 	attrs := map[string]string{
 		"type":        f.Type,
-		"id":          f.Id,
-		"name":        f.Id,
+		"id":          fmt.Sprintf("%s%s", d.Name, f.Id),
+		"name":        fmt.Sprintf("%s%s", d.Name, f.Id),
 		"placeholder": f.PlaceHolder,
 		"class":       strings.Join(f.Class, " "),
 		"ng-model":    fmt.Sprintf("%s.%s", d.ObjName, f.Id),
@@ -123,8 +124,8 @@ type TextAreaField struct {
 func (f *TextAreaField) Build(form Form) string {
 	d := getFormData(form)
 	attrs := map[string]string{
-		"id":          f.Id,
-		"name":        f.Id,
+		"id":          fmt.Sprintf("%s%s", d.Name, f.Id),
+		"name":        fmt.Sprintf("%s%s", d.Name, f.Id),
 		"placeholder": f.PlaceHolder,
 		"class":       strings.Join(f.Class, " "),
 		"ng-model":    fmt.Sprintf("%s.%s", d.ObjName, f.Id),
