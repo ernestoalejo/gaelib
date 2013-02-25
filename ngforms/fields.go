@@ -19,7 +19,6 @@ func BuildControl(form Form, id, name, help string) (map[string]string, string) 
 	messages = fmt.Sprintf(`
         <p class="help-block error" ng-show="%s.val && %s.%s.$invalid">
 	`, d.Name, d.Name, id)
-
 	for _, val := range validations {
 		update(attrs, val.Attrs)
 		errs += fmt.Sprintf("%s.%s.$error.%s || ", d.Name, id, val.Error)
@@ -27,7 +26,6 @@ func BuildControl(form Form, id, name, help string) (map[string]string, string) 
 			<span ng-show="%s.%s.$error.%s">%s</span>
 		`, d.Name, id, val.Error, val.Message)
 	}
-
 	messages += `</p>`
 	errs = errs[:len(errs)-4]
 
@@ -64,13 +62,14 @@ func (f *InputField) Build(form Form) string {
 		panic("input type should not be empty: " + f.Id)
 	}
 
+	d := getFormData(form)
 	attrs := map[string]string{
 		"type":        f.Type,
 		"id":          f.Id,
 		"name":        f.Id,
 		"placeholder": f.PlaceHolder,
 		"class":       strings.Join(f.Class, " "),
-		"ng-model":    "data." + f.Id,
+		"ng-model":    fmt.Sprintf("%s.%s", d.ObjName, f.Id),
 	}
 	update(attrs, f.Attrs)
 
@@ -122,12 +121,13 @@ type TextAreaField struct {
 }
 
 func (f *TextAreaField) Build(form Form) string {
+	d := getFormData(form)
 	attrs := map[string]string{
 		"id":          f.Id,
 		"name":        f.Id,
 		"placeholder": f.PlaceHolder,
 		"class":       strings.Join(f.Class, " "),
-		"ng-model":    "data." + f.Id,
+		"ng-model":    fmt.Sprintf("%s.%s", d.ObjName, f.Id),
 		"rows":        fmt.Sprintf("%d", f.Rows),
 	}
 

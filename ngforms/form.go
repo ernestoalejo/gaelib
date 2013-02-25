@@ -19,9 +19,20 @@ type FieldList []Field
 type ValidationMap map[string][]*Validator
 
 type FormData struct {
-	Name      string
-	Submit    string
+	// Name of the controller of the form
+	Name string
+
+	// Function called when the form passed all the validations
+	// and is sent. Without the () pair
+	Submit string
+
+	// Function called each time the user try to send the form
+	// Without the () pair
 	TrySubmit string
+
+	// Name of the client side object that will be scoped
+	// with the values of the form
+	ObjName string
 }
 
 type Form interface {
@@ -57,6 +68,9 @@ func getFormData(f Form) *FormData {
 	}
 	if d.TrySubmit == "" {
 		d.TrySubmit = "trySubmit"
+	}
+	if d.ObjName == "" {
+		d.ObjName = "data"
 	}
 	return d
 }
