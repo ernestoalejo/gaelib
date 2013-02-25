@@ -18,8 +18,14 @@ type Field interface {
 type FieldList []Field
 type ValidationMap map[string][]*Validator
 
+type FormData struct {
+	Name      string
+	Submit    string
+	TrySubmit string
+}
+
 type Form interface {
-	Name() string
+	Data() *FormData
 	Fields() FieldList
 	Validations() ValidationMap
 }
@@ -31,10 +37,28 @@ func Build(f Form) string {
 		results = append(results, field.Build(f))
 	}
 
+	d := getFormData(f)
 	return fmt.Sprintf(`
       <form class="form-horizontal" name="%s" novalidate ng-init="%s.val = false;"
-        ng-submit="%s.$valid && submit()"><fieldset>%s</fieldset></form>
-    `, f.Name(), f.Name(), f.Name(), strings.Join(results, ""))
+        ng-submit="%s.$valid && %s()"><fieldset>%s</fieldset></form>
+    `, d.Name, d.Name, d.Name, d.Submit, strings.Join(results, ""))
+}
+
+func getFormData(f Form) *FormData {
+	d := f.Data()
+	if d == nil {
+		d = new(FormData)
+	}
+	if d.Name == "" {
+		d.Name = "f"
+	}
+	if d.Submit == "" {
+		d.Submit = "submit"
+	}
+	if d.TrySubmit == "" {
+		d.TrySubmit = "trySubmit"
+	}
+	return d
 }
 
 // Validate the form.

@@ -15,16 +15,17 @@ func BuildControl(form Form, id, name, help string) (map[string]string, string) 
 		panic("control without validations: " + id)
 	}
 
+	d := getFormData(form)
 	messages = fmt.Sprintf(`
         <p class="help-block error" ng-show="%s.val && %s.%s.$invalid">
-	`, form.Name(), form.Name(), id)
+	`, d.Name, d.Name, id)
 
 	for _, val := range validations {
 		update(attrs, val.Attrs)
-		errs += fmt.Sprintf("%s.%s.$error.%s || ", form.Name(), id, val.Error)
+		errs += fmt.Sprintf("%s.%s.$error.%s || ", d.Name, id, val.Error)
 		messages += fmt.Sprintf(`
 			<span ng-show="%s.%s.$error.%s">%s</span>
-		`, form.Name(), id, val.Error, val.Message)
+		`, d.Name, id, val.Error, val.Message)
 	}
 
 	messages += `</p>`
@@ -35,7 +36,7 @@ func BuildControl(form Form, id, name, help string) (map[string]string, string) 
 	        <div class="control-group" ng-class="%s.val && (%s) && 'error'">
 	          %%s%s
 	        </div>
-		`, form.Name(), errs, messages)
+		`, d.Name, errs, messages)
 	}
 
 	return attrs, fmt.Sprintf(`
@@ -43,7 +44,7 @@ func BuildControl(form Form, id, name, help string) (map[string]string, string) 
         <label class="control-label" for="%s">%s</label>
         <div class="controls">%%s%s</div>
       </div>
-	`, form.Name(), errs, id, name, messages)
+	`, d.Name, errs, id, name, messages)
 }
 
 // ==================================================================
@@ -100,13 +101,14 @@ func (f *SubmitField) Build(form Form) string {
 			f.CancelUrl, f.CancelLabel)
 	}
 
+	d := getFormData(form)
 	return fmt.Sprintf(`
 		<div class="form-actions">
-			<button ng-click="trySubmit(); %s.val = true;" class="btn btn-primary"
+			<button ng-click="%s(); %s.val = true;" class="btn btn-primary"
 				ng-disabled="%s.val && !%s.$valid">%s</button>
 			%s
 		</div>
-	`, form.Name(), form.Name(), form.Name(), f.Label, cancel)
+	`, d.TrySubmit, d.Name, d.Name, d.Name, f.Label, cancel)
 }
 
 // ==================================================================
