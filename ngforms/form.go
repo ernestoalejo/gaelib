@@ -36,10 +36,51 @@ type FormData struct {
 }
 
 type Form interface {
+	// General data about the form
+	// Extending *BaseForm gives you an implementation of this
+	// Override when needed
 	Data() *FormData
+
+	// List of items of the form
 	Fields() FieldList
 	Validations() ValidationMap
+
+	// Store the value of each field for validations
+	// Extending *BaseForm gives you an implementation of these
+	Value(key string) string
+	SetValue(key, value string)
 }
+
+// ==================================================================
+
+type BaseForm struct {
+	values map[string]string
+}
+
+func (f *BaseForm) Data() *FormData {
+	return nil
+}
+
+func (f *BaseForm) Value(key string) string {
+	return f.values[key]
+}
+
+func (f *BaseForm) SetValue(key, value string) {
+	if f.values == nil {
+		f.values = map[string]string{}
+	}
+	f.values[key] = value
+}
+
+func (f *BaseForm) Fields() FieldList {
+	panic("should override this function")
+}
+
+func (f *BaseForm) Validations() ValidationMap {
+	panic("should override this function")
+}
+
+// ==================================================================
 
 // Build the form returning the generated HTML
 func Build(f Form) string {
@@ -111,6 +152,7 @@ func Validate(r *http.Request, f Form) (bool, error) {
 				return false, nil
 			}
 		}
+		f.SetValue(id, value)
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(f); err != nil {

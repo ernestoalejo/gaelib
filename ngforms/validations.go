@@ -65,21 +65,17 @@ func Email(msg string) *Validator {
 	}
 }
 
-/*
-func Match(f *Form, field, msg string) *Validator {
+func Match(f Form, field, msg string) *Validator {
+	d := getFormData(f)
 	return &Validator{
-		Attrs:   map[string]string{"match": field},
+		Attrs:   map[string]string{"match": fmt.Sprintf("%s%s", d.Name, field)},
 		Message: msg,
 		Error:   "match",
-		Func: func(v string) bool {
-			ctrl := f.GetControl(field)
-			if ctrl != nil {
-				return ctrl.value == v
-			}
-			panic("should not reach here: " + field)
-		},
+		Func:    func(v string) bool { return f.Value(field) == v },
 	}
 }
+
+/*
 
 func Select(f *Form, field, msg string) *Validator {
 	return &Validator{
