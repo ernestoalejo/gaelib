@@ -4,40 +4,28 @@ import (
 	"bytes"
 
 	"conf"
-	"github.com/ernestokarim/gaelib/apperrors"
+	"github.com/ernestokarim/gaelib/errors"
 	"github.com/ernestokarim/gaelib/mail"
 
 	"appengine"
 )
 
 func LogError(c appengine.Context, err error) {
-	e, ok := (err).(*apperrors.Error)
-	if !ok {
-		e = Error(err).(*apperrors.Error)
-	}
-
+	e := errors.New(err).(*errors.Error)
 	c.Errorf("%s", e.Error())
 	sendErrorByEmail(c, e.Error())
 }
 
-func Error(original error) error {
-	return apperrors.New(original)
-}
-
-func Errorf(format string, args ...interface{}) error {
-	return apperrors.Format(format, args...)
-}
-
 func NotFound() error {
-	return apperrors.Code(404)
+	return errors.Code(404)
 }
 
 func Forbidden() error {
-	return apperrors.Code(403)
+	return errors.Code(403)
 }
 
 func NotAllowed() error {
-	return apperrors.Code(405)
+	return errors.Code(405)
 }
 
 func sendErrorByEmail(c appengine.Context, errorStr string) {

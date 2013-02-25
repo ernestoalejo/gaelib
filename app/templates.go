@@ -1,6 +1,7 @@
 package app
 
 import (
+	"html"
 	"html/template"
 	"io"
 	"path/filepath"
@@ -9,6 +10,8 @@ import (
 	"time"
 
 	"appengine"
+
+	"github.com/ernestokarim/gaelib/errors"
 )
 
 var (
@@ -33,14 +36,17 @@ func init() {
 		return t.Format("02/01/2006 15:04:05")
 	})
 
-	// Converst any string into an HTML snnipet
+	// Convert any string into an HTML snnipet
+	// Take care of not introducing a security error
 	AddTemplateFunc("bhtml", func(s string) template.HTML {
 		return template.HTML(s)
 	})
 
 	// Converts new lines to their equivalent in HTML
 	AddTemplateFunc("nl2br", func(s string) template.HTML {
-		return template.HTML(strings.Replace(s, "\n", "<br>", -1))
+		s = html.EscapeString(s)
+		s = strings.Replace(s, "\n", "<br>", -1)
+		return template.HTML(s)
 	})
 }
 
@@ -95,13 +101,13 @@ func ExecTemplate(c *TemplateConfig) error {
 
 		t, err = t.Funcs(templatesFuncs).ParseFiles(c.Names...)
 		if err != nil {
-			return Error(err)
+			return errors.New(err)
 		}
 		templatesCache[cname] = t
 	}
 
 	if err := t.ExecuteTemplate(c.W, "base", c.Data); err != nil {
-		return Error(err)
+		return errors.New(err)
 	}
 
 	return nil

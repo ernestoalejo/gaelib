@@ -1,10 +1,11 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"appengine"
+
+	"github.com/ernestokarim/gaelib/errors"
 )
 
 // All handlers in the app must implement this type
@@ -23,7 +24,7 @@ func (fn Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	defer func() {
 		if rec := recover(); rec != nil {
-			err := Error(fmt.Errorf("panic recovered error: %s", rec))
+			err := errors.Format("panic recovered error: %s", rec)
 			r.processError(err)
 		}
 	}()

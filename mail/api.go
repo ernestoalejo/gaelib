@@ -2,7 +2,6 @@ package mail
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -11,6 +10,8 @@ import (
 
 	"appengine"
 	"appengine/urlfetch"
+
+	"github.com/ernestokarim/gaelib/errors"
 )
 
 type Mail struct {
@@ -47,19 +48,20 @@ func SendMail(c appengine.Context, mail *Mail) error {
 	// Request the SendGrid API
 	resp, err := client.PostForm(conf.MAIL_SEND_API, data)
 	if err != nil {
-		return err
+		return errors.New(err)
 	}
 	defer resp.Body.Close()
 
 	// Decode the Mail API response
 	var r mailAPI
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
-		return err
+		return errors.New(err)
 	}
 
 	// Test for errors in the api call
 	if r.Message != "success" {
-		return fmt.Errorf("cannot send the mail: api %s message: %v", r.Message, r.Errors)
+		return errors.Format("cannot send the mail: api %s message: %v",
+			r.Message, r.Errors)
 	}
 
 	return nil

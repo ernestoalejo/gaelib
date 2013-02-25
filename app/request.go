@@ -10,7 +10,7 @@ import (
 
 	"appengine"
 
-	"github.com/ernestokarim/gaelib/apperrors"
+	"github.com/ernestokarim/gaelib/errors"
 	"github.com/gorilla/schema"
 )
 
@@ -29,7 +29,7 @@ type Request struct {
 // Load the request data using gorilla schema into a struct
 func (r *Request) LoadData(data interface{}) error {
 	if err := r.Req.ParseForm(); err != nil {
-		return Error(err)
+		return errors.New(err)
 	}
 
 	if err := schemaDecoder.Decode(data, r.Req.Form); err != nil {
@@ -50,7 +50,7 @@ func (r *Request) LoadData(data interface{}) error {
 
 		// Not a MultiError, log it
 		if err != nil {
-			return Error(err)
+			return errors.New(err)
 		}
 	}
 
@@ -63,7 +63,7 @@ func (r *Request) LoadJsonData(data interface{}) error {
 			return nil
 		}
 
-		return Error(err)
+		return errors.New(err)
 	}
 
 	return nil
@@ -75,7 +75,7 @@ func (r *Request) EmitJson(data interface{}) error {
 
 	// Encode the output
 	if err := json.NewEncoder(r.W).Encode(data); err != nil {
-		return Error(err)
+		return errors.New(err)
 	}
 
 	return nil
@@ -138,17 +138,13 @@ func (r *Request) TemplateDelims(names []string, data interface{}, leftDelim, ri
 
 func (r *Request) JsonResponse(data interface{}) error {
 	if err := json.NewEncoder(r.W).Encode(data); err != nil {
-		return Error(err)
+		return errors.New(err)
 	}
 	return nil
 }
 
 func (r *Request) processError(err error) {
-	e, ok := (err).(*apperrors.Error)
-	if !ok {
-		e = Error(err).(*apperrors.Error)
-	}
-
+	e := errors.New(err).(*errors.Error)
 	LogError(r.C, e)
 
 	h, ok := errorHandlers[e.Code]

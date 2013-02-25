@@ -1,4 +1,4 @@
-package apperrors
+package errors
 
 import (
 	"fmt"
@@ -16,6 +16,10 @@ func (err *Error) Error() string {
 }
 
 func New(original error) error {
+	if _, ok := original.(*Error); ok {
+		return original
+	}
+
 	return &Error{
 		OriginalErr: original,
 		Code:        500,

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ernestokarim/gaelib/apperrors"
+	"github.com/ernestokarim/gaelib/errors"
 )
 
 type Field interface {
@@ -43,14 +43,14 @@ func Validate(r *http.Request, f Form) (bool, error) {
 	// Copy the body to a buffer so we can use it twice
 	buf := new(bytes.Buffer)
 	if _, err := buf.ReadFrom(r.Body); err != nil {
-		return false, apperrors.New(err)
+		return false, errors.New(err)
 	}
 	nbuf := ioutil.NopCloser(bytes.NewBuffer(buf.Bytes()))
 	r.Body = nbuf
 
 	m := make(map[string]interface{})
 	if err := json.NewDecoder(buf).Decode(&m); err != nil {
-		return false, apperrors.New(err)
+		return false, errors.New(err)
 	}
 
 	fields := f.Fields()
@@ -75,7 +75,7 @@ func Validate(r *http.Request, f Form) (bool, error) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(f); err != nil {
-		return false, apperrors.New(err)
+		return false, errors.New(err)
 	}
 
 	return true, nil
@@ -111,16 +111,11 @@ func getId(f Field) string {
 	if ok {
 		return input.Id
 	}
-	/*
-		sel, ok := f.(*SelectField)
-		if ok {
-			return sel.Control
-		}
 
-		ta, ok := f.(*TextAreaField)
-		if ok {
-			return ta.Control
-		}*/
+	ta, ok := f.(*TextAreaField)
+	if ok {
+		return ta.Id
+	}
 
 	return ""
 }
