@@ -19,21 +19,22 @@ type FieldList []Field
 type ValidationMap map[string][]*Validator
 
 type Form interface {
+	Name() string
 	Fields() FieldList
 	Validations() ValidationMap
 }
 
 // Build the form returning the generated HTML
 func Build(f Form) string {
-	var result string
+	results := []string{}
 	for _, field := range f.Fields() {
-		result += field.Build(f)
+		results = append(results, field.Build(f))
 	}
 
 	return fmt.Sprintf(`
-      <form class="form-horizontal" name="f" novalidate ng-init="val = false;"
-        ng-submit="f.$valid && submit()"><fieldset>%s</fieldset></form>
-    `, result)
+      <form class="form-horizontal" name="%s" novalidate ng-init="%s.val = false;"
+        ng-submit="%s.$valid && submit()"><fieldset>%s</fieldset></form>
+    `, f.Name(), f.Name(), f.Name(), strings.Join(results, ""))
 }
 
 // Validate the form.

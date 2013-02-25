@@ -16,15 +16,15 @@ func BuildControl(form Form, id, name, help string) (map[string]string, string) 
 	}
 
 	messages = fmt.Sprintf(`
-        <p class="help-block error" ng-show="val && f.%s.$invalid">
-	`, id)
+        <p class="help-block error" ng-show="%s.val && %s.%s.$invalid">
+	`, form.Name(), form.Name(), id)
 
 	for _, val := range validations {
 		update(attrs, val.Attrs)
-		errs += fmt.Sprintf("f.%s.$error.%s || ", id, val.Error)
+		errs += fmt.Sprintf("%s.%s.$error.%s || ", form.Name(), id, val.Error)
 		messages += fmt.Sprintf(`
-			<span ng-show="f.%s.$error.%s">%s</span>
-		`, id, val.Error, val.Message)
+			<span ng-show="%s.%s.$error.%s">%s</span>
+		`, form.Name(), id, val.Error, val.Message)
 	}
 
 	messages += `</p>`
@@ -32,18 +32,18 @@ func BuildControl(form Form, id, name, help string) (map[string]string, string) 
 
 	if name == "" {
 		return attrs, fmt.Sprintf(`
-	        <div class="control-group" ng-class="val && (%s) && 'error'">
+	        <div class="control-group" ng-class="%s.val && (%s) && 'error'">
 	          %%s%s
 	        </div>
-		`, errs, messages)
+		`, form.Name(), errs, messages)
 	}
 
 	return attrs, fmt.Sprintf(`
-      <div class="control-group" ng-class="val && (%s) && 'error'">
+      <div class="control-group" ng-class="%s.val && (%s) && 'error'">
         <label class="control-label" for="%s">%s</label>
         <div class="controls">%%s%s</div>
       </div>
-	`, errs, id, name, messages)
+	`, form.Name(), errs, id, name, messages)
 }
 
 // ==================================================================
@@ -102,11 +102,11 @@ func (f *SubmitField) Build(form Form) string {
 
 	return fmt.Sprintf(`
 		<div class="form-actions">
-			<button ng-click="trySubmit(); val = true;" class="btn btn-primary"
-				ng-disabled="val && !f.$valid">%s</button>
+			<button ng-click="trySubmit(); %s.val = true;" class="btn btn-primary"
+				ng-disabled="%s.val && !%s.$valid">%s</button>
 			%s
 		</div>
-	`, f.Label, cancel)
+	`, form.Name(), form.Name(), form.Name(), f.Label, cancel)
 }
 
 // ==================================================================
