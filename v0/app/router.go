@@ -9,14 +9,14 @@ import (
 )
 
 // Build the router table at init.
-// 
+//
 // Example routes map:
 //    map[string]app.Handler{
 //      "ERROR::404": stuff.NotFound,
 //      "DELETE::/_/example": example.Delete,
 //      ....
 //    }
-// 
+//
 func Router(routes map[string]Handler) {
 	r := mux.NewRouter().StrictSlash(true)
 	http.Handle("/", r)

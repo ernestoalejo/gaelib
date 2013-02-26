@@ -10,7 +10,7 @@ import (
 
 	"appengine"
 
-	"github.com/ernestokarim/gaelib/errors"
+	"github.com/ernestokarim/gaelib/v0/errors"
 	"github.com/gorilla/schema"
 )
 

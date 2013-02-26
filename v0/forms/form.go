@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/ernestokarim/gaelib/app"
+	"github.com/ernestokarim/gaelib/v0/app"
 )
 
 type Field interface {

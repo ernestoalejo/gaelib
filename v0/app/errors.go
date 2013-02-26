@@ -4,8 +4,8 @@ import (
 	"bytes"
 
 	"conf"
-	"github.com/ernestokarim/gaelib/errors"
-	"github.com/ernestokarim/gaelib/mail"
+	"github.com/ernestokarim/gaelib/v0/errors"
+	"github.com/ernestokarim/gaelib/v0/mail"
 
 	"appengine"
 )

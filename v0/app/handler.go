@@ -5,7 +5,7 @@ import (
 
 	"appengine"
 
-	"github.com/ernestokarim/gaelib/errors"
+	"github.com/ernestokarim/gaelib/v0/errors"
 )
 
 // All handlers in the app must implement this type

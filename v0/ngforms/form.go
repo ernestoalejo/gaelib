@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ernestokarim/gaelib/errors"
+	"github.com/ernestokarim/gaelib/v0/errors"
 )
 
 type Field interface {
