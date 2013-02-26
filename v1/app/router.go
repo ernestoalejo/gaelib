@@ -5,8 +5,14 @@ import (
 	"strconv"
 	"strings"
 
+	"appengine"
+
+	"github.com/ernestokarim/gaelib/v0/errors"
 	"github.com/gorilla/mux"
+	"github.com/mjibson/appstats"
 )
+
+type Handler func(r *Request) error
 
 // Build the router table at init.
 //
@@ -15,6 +21,7 @@ import (
 //      "ERROR::404": stuff.NotFound,
 //      "DELETE::/_/example": example.Delete,
 //      ....
+//      "::/_/feedback": stuff.Feedback,
 //    }
 //
 func Router(routes map[string]Handler) {
@@ -22,28 +29,50 @@ func Router(routes map[string]Handler) {
 	http.Handle("/", r)
 
 	for route, handler := range routes {
+		h := appstatsWrapper(handler)
+
 		parts := strings.Split(route, "::")
 		if len(parts) != 2 {
 			panic("route not in the method::path format")
-		}
-
-		if parts[0] == "ERROR" {
+		} else if parts[0] == "ERROR" {
 			n, err := strconv.ParseInt(parts[1], 10, 64)
 			if err != nil {
 				panic(err)
 			}
 
-			SetErrorHandler(int(n), Handler(handler))
+			SetErrorHandler(int(n), handler)
 
 			if n == 404 {
-				r.NotFoundHandler = Handler(handler)
+				r.NotFoundHandler = h
 			}
-		}
-
-		if len(parts[0]) == 0 {
-			r.Handle(parts[1], Handler(handler))
+		} else if len(parts[0]) == 0 {
+			r.Handle(parts[1], h)
 		} else {
-			r.Handle(parts[1], Handler(handler)).Methods(parts[0])
+			r.Handle(parts[1], h).Methods(parts[0])
 		}
 	}
+}
+
+func appstatsWrapper(h Handler) http.Handler {
+	f := func(c appengine.Context, w http.ResponseWriter, req *http.Request) {
+		// Emit some compatibility & anti-cache headers for IE
+		w.Header().Set("X-UA-Compatible", "chrome=1")
+		w.Header().Set("Cache-Control", "max-age=0,no-cache,no-store,"+
+			"post-check=0,pre-check=0")
+		w.Header().Set("Expires", "Mon, 26 Jul 1997 05:00:00 GMT")
+
+		r := &Request{Req: req, W: w, C: c}
+
+		defer func() {
+			if rec := recover(); rec != nil {
+				err := errors.Format("panic recovered error: %s", rec)
+				r.processError(err)
+			}
+		}()
+
+		if err := h(r); err != nil {
+			r.processError(err)
+		}
+	}
+	return appstats.NewHandler(f)
 }
