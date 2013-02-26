@@ -10,6 +10,7 @@ import (
 	"github.com/ernestokarim/gaelib/v0/errors"
 	"github.com/gorilla/mux"
 	"github.com/mjibson/appstats"
+	"github.com/mjibson/goon"
 )
 
 type Handler func(r *Request) error
@@ -61,7 +62,12 @@ func appstatsWrapper(h Handler) http.Handler {
 			"post-check=0,pre-check=0")
 		w.Header().Set("Expires", "Mon, 26 Jul 1997 05:00:00 GMT")
 
-		r := &Request{Req: req, W: w, C: c}
+		r := &Request{
+			Req: req,
+			W:   w,
+			C:   c,
+			N:   goon.FromContext(c),
+		}
 
 		defer func() {
 			if rec := recover(); rec != nil {

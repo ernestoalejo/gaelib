@@ -12,6 +12,7 @@ import (
 
 	"github.com/ernestokarim/gaelib/v1/errors"
 	"github.com/gorilla/schema"
+	"github.com/mjibson/goon"
 )
 
 var (
@@ -24,6 +25,7 @@ type Request struct {
 	Req *http.Request
 	W   http.ResponseWriter
 	C   appengine.Context
+	N   *goon.Goon
 }
 
 // Load the request data using gorilla schema into a struct
