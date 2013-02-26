@@ -136,13 +136,6 @@ func (r *Request) TemplateDelims(names []string, data interface{}, leftDelim, ri
 	return TemplateDelims(r.W, names, data, leftDelim, rightDelim)
 }
 
-func (r *Request) JsonResponse(data interface{}) error {
-	if err := json.NewEncoder(r.W).Encode(data); err != nil {
-		return errors.New(err)
-	}
-	return nil
-}
-
 func (r *Request) processError(err error) {
 	e := errors.New(err).(*errors.Error)
 	LogError(r.C, e)

@@ -21,21 +21,6 @@ var (
 )
 
 func init() {
-	// Compare two items to see if they're equal
-	AddTemplateFunc("equals", func(a, b interface{}) bool {
-		return a == b
-	})
-
-	// Returns true if the current iteration is the last one of the loop
-	AddTemplateFunc("last", func(max, i int) bool {
-		return i == max-1
-	})
-
-	// Quick format for a date & time
-	AddTemplateFunc("datetime", func(t time.Time) string {
-		return t.Format("02/01/2006 15:04:05")
-	})
-
 	// Convert any string into an HTML snnipet
 	// Take care of not introducing a security error
 	AddTemplateFunc("bhtml", func(s string) template.HTML {
