@@ -20,6 +20,10 @@ func NotAllowed() error {
 }
 
 func sendErrorByEmail(c appengine.Context, errorStr string) {
+	if appengine.IsDevAppServer() {
+		return
+	}
+
 	t := NewTask("/tasks/error-mail", map[string]string{
 		"Error": errorStr,
 	})
