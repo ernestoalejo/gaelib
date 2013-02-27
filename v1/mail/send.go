@@ -10,6 +10,7 @@ import (
 	"conf"
 
 	"appengine"
+	"appengine/taskqueue"
 	"appengine/urlfetch"
 
 	"github.com/ernestokarim/gaelib/v1/app"
@@ -30,6 +31,22 @@ type Mail struct {
 	AppId string
 }
 
+func (m *Mail) Send(r *app.Request) error {
+	buf := bytes.NewBuffer(nil)
+	if err := json.NewEncoder(buf).Encode(m); err != nil {
+		return errors.New(err)
+	}
+
+	t := app.NewTask("/tasks/mail", map[string]string{
+		"Mail": buf.String(),
+	})
+	if _, err := taskqueue.Add(r.C, t, "mails"); err != nil {
+		return errors.New(err)
+	}
+
+	return nil
+}
+
 // Response from the SendGrid API
 type mailAPI struct {
 	Message string   `json:"message"`
@@ -37,7 +54,7 @@ type mailAPI struct {
 }
 
 // Send a mail using the SendGrid API
-func Send(r *app.Request, m *Mail) error {
+func SendGrid(r *app.Request, m *Mail) error {
 	m.AppId = appengine.AppID(r.C)
 	html := bytes.NewBuffer(nil)
 	if err := app.Template(html, m.Templates, m); err != nil {
