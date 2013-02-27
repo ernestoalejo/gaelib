@@ -1,11 +1,9 @@
 package app
 
 import (
-	"html"
 	"html/template"
 	"io"
 	"path/filepath"
-	"strings"
 	"sync"
 
 	"appengine"
@@ -16,27 +14,7 @@ import (
 var (
 	templatesMutex = &sync.Mutex{}
 	templatesCache = map[string]*template.Template{}
-	templatesFuncs = template.FuncMap{}
 )
-
-func init() {
-	// Convert any string into an HTML snnipet
-	// Take care of not introducing a security error
-	AddTemplateFunc("bhtml", func(s string) template.HTML {
-		return template.HTML(s)
-	})
-
-	// Converts new lines to their equivalent in HTML
-	AddTemplateFunc("nl2br", func(s string) template.HTML {
-		s = html.EscapeString(s)
-		s = strings.Replace(s, "\n", "<br>", -1)
-		return template.HTML(s)
-	})
-}
-
-func AddTemplateFunc(name string, f interface{}) {
-	templatesFuncs[name] = f
-}
 
 type TemplateConfig struct {
 	LeftDelim, RightDelim string
@@ -83,7 +61,7 @@ func ExecTemplate(c *TemplateConfig) error {
 		var err error
 		t = template.New(cname).Delims(c.LeftDelim, c.RightDelim)
 
-		t, err = t.Funcs(templatesFuncs).ParseFiles(c.Names...)
+		t, err = t.ParseFiles(c.Names...)
 		if err != nil {
 			return errors.New(err)
 		}

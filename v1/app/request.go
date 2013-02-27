@@ -138,9 +138,21 @@ func (r *Request) TemplateDelims(names []string, data interface{}, leftDelim, ri
 	return TemplateDelims(r.W, names, data, leftDelim, rightDelim)
 }
 
+func (r *Request) URL() string {
+	return r.Req.URL.String()
+}
+
+func (r *Request) LogError(err error) {
+	e := errors.New(err).(*errors.Error)
+	r.C.Errorf("%s", e.Error())
+	if !strings.Contains(r.URL(), "/tasks/error-mail") {
+		sendErrorByEmail(r.C, e.Error())
+	}
+}
+
 func (r *Request) processError(err error) {
 	e := errors.New(err).(*errors.Error)
-	LogError(r.C, e)
+	r.LogError(e)
 
 	h, ok := errorHandlers[e.Code]
 	if ok {
