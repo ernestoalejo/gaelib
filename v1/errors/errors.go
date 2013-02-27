@@ -12,7 +12,7 @@ type Error struct {
 }
 
 func (err *Error) Error() string {
-	return fmt.Sprintf("[status code %d] %s\n\n%s", err.Code, err.OriginalErr, err.CallStack)
+	return fmt.Sprintf("[status code %d]\n%s\n\n%s", err.Code, err.OriginalErr, err.CallStack)
 }
 
 func New(original error) error {
