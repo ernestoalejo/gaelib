@@ -1,22 +1,28 @@
 package app
 
 import (
-	"github.com/ernestokarim/gaelib/v1/errors"
+	"fmt"
 
 	"appengine"
 	"appengine/taskqueue"
 )
 
-func NotFound() error {
-	return errors.Code(404)
+type HttpError int
+
+func (e HttpError) Error() string {
+	return fmt.Sprintf("%d", e)
 }
 
 func Forbidden() error {
-	return errors.Code(403)
+	return HttpError(403)
+}
+
+func NotFound() error {
+	return HttpError(404)
 }
 
 func NotAllowed() error {
-	return errors.Code(405)
+	return HttpError(405)
 }
 
 func sendErrorByEmail(c appengine.Context, errorStr string) {

@@ -1,14 +1,13 @@
 package app
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"path/filepath"
 	"sync"
 
 	"appengine"
-
-	"github.com/ernestokarim/gaelib/v1/errors"
 )
 
 var (
@@ -47,14 +46,14 @@ func TemplateDelims(w io.Writer, names []string, data interface{}, leftDelim, ri
 }
 
 func ExecTemplate(c *TemplateConfig) error {
-	templatesMutex.Lock()
-	defer templatesMutex.Unlock()
-
 	cname := ""
 	for i, name := range c.Names {
 		c.Names[i] = filepath.Join(c.Dir, name+".html")
 		cname += name
 	}
+
+	templatesMutex.Lock()
+	defer templatesMutex.Unlock()
 
 	t, ok := templatesCache[cname]
 	if !ok || appengine.IsDevAppServer() {
@@ -63,13 +62,13 @@ func ExecTemplate(c *TemplateConfig) error {
 
 		t, err = t.ParseFiles(c.Names...)
 		if err != nil {
-			return errors.New(err)
+			return fmt.Errorf("templates parsing failed: %s", err)
 		}
 		templatesCache[cname] = t
 	}
 
 	if err := t.ExecuteTemplate(c.W, "base", c.Data); err != nil {
-		return errors.New(err)
+		return fmt.Errorf("exec templates failed: %s", err)
 	}
 
 	return nil

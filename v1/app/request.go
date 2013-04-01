@@ -10,14 +10,12 @@ import (
 
 	"appengine"
 
-	"github.com/ernestokarim/gaelib/v1/errors"
 	"github.com/gorilla/schema"
 	"github.com/mjibson/goon"
 )
 
 var (
 	schemaDecoder = schema.NewDecoder()
-
 	errorHandlers = map[int]Handler{}
 )
 
@@ -31,7 +29,7 @@ type Request struct {
 // Load the request data using gorilla schema into a struct
 func (r *Request) LoadData(data interface{}) error {
 	if err := r.Req.ParseForm(); err != nil {
-		return errors.New(err)
+		return fmt.Errorf("parse form failed: %s", err)
 	}
 
 	if err := schemaDecoder.Decode(data, r.Req.Form); err != nil {
@@ -52,7 +50,7 @@ func (r *Request) LoadData(data interface{}) error {
 
 		// Not a MultiError, log it
 		if err != nil {
-			return errors.New(err)
+			return fmt.Errorf("schema decode failed: %s", err)
 		}
 	}
 
@@ -65,7 +63,7 @@ func (r *Request) LoadJsonData(data interface{}) error {
 			return nil
 		}
 
-		return errors.New(err)
+		return fmt.Errorf("decode json body failed: %s", err)
 	}
 
 	return nil
@@ -77,7 +75,7 @@ func (r *Request) EmitJson(data interface{}) error {
 
 	// Encode the output
 	if err := json.NewEncoder(r.W).Encode(data); err != nil {
-		return errors.New(err)
+		return fmt.Errorf("encode json failed: %s", err)
 	}
 
 	return nil
@@ -143,27 +141,31 @@ func (r *Request) URL() string {
 }
 
 func (r *Request) LogError(err error) {
-	e := errors.New(err).(*errors.Error)
-	r.C.Errorf("%s", e.Error())
-	if !strings.Contains(r.URL(), "/tasks/error-mail") {
-		sendErrorByEmail(r.C, e.Error())
+	r.C.Errorf("%s", err.Error())
+	if !strings.Contains(r.URL(), "/tasks/error-mail") && !appengine.IsDevAppServer() {
+		sendErrorByEmail(r.C, err.Error())
 	}
 }
 
 func (r *Request) processError(err error) {
-	e := errors.New(err).(*errors.Error)
-	r.LogError(e)
+	r.LogError(err)
 
-	h, ok := errorHandlers[e.Code]
+	code := 500
+	if e, ok := err.(HttpError); ok {
+		code = int(e)
+	}
+
+	h, ok := errorHandlers[code]
 	if ok {
 		if err := h(r); err == nil {
 			return
 		}
 	}
 
-	http.Error(r.W, "", e.Code)
+	http.Error(r.W, "", code)
 }
 
+// Sets a new handler function for HTTP errors that returns the code status
 func SetErrorHandler(code int, f Handler) {
 	errorHandlers[code] = f
 }

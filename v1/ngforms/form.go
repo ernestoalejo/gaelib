@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-
-	"github.com/ernestokarim/gaelib/v1/errors"
 )
 
 type Field interface {
@@ -123,14 +121,14 @@ func Validate(r *http.Request, f Form) (bool, error) {
 	// Copy the body to a buffer so we can use it twice
 	buf := new(bytes.Buffer)
 	if _, err := buf.ReadFrom(r.Body); err != nil {
-		return false, errors.New(err)
+		return false, fmt.Errorf("read body json failed: %s", err)
 	}
 	nbuf := ioutil.NopCloser(bytes.NewBuffer(buf.Bytes()))
 	r.Body = nbuf
 
 	m := make(map[string]interface{})
 	if err := json.NewDecoder(buf).Decode(&m); err != nil {
-		return false, errors.New(err)
+		return false, fmt.Errorf("decode body json failed: %s", err)
 	}
 
 	fields := f.Fields()
@@ -156,7 +154,7 @@ func Validate(r *http.Request, f Form) (bool, error) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(f); err != nil {
-		return false, errors.New(err)
+		return false, fmt.Errorf("decode json struct failed: %s", err)
 	}
 
 	return true, nil

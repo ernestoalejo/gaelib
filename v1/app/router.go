@@ -1,13 +1,13 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"appengine"
 
-	"github.com/ernestokarim/gaelib/v0/errors"
 	"github.com/gorilla/mux"
 	"github.com/mjibson/appstats"
 	"github.com/mjibson/goon"
@@ -71,7 +71,7 @@ func appstatsWrapper(h Handler) http.Handler {
 
 		defer func() {
 			if rec := recover(); rec != nil {
-				err := errors.Format("panic recovered error: %s", rec)
+				err := fmt.Errorf("panic recovered error: %s", rec)
 				r.processError(err)
 			}
 		}()
