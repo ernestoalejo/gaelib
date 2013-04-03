@@ -27,6 +27,9 @@ type Handler func(r *Request) error
 //
 func Router(routes map[string]Handler) {
 	r := mux.NewRouter().StrictSlash(true)
+	r.NotFoundHandler = appstatsWrapper(func(r *Request) error {
+		return NotFound()
+	})
 	http.Handle("/", r)
 
 	for route, handler := range routes {
@@ -42,10 +45,6 @@ func Router(routes map[string]Handler) {
 			}
 
 			SetErrorHandler(int(n), handler)
-
-			if n == 404 {
-				r.NotFoundHandler = h
-			}
 		} else if len(parts[0]) == 0 {
 			r.Handle(parts[1], h)
 		} else {

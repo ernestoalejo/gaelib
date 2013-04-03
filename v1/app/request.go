@@ -141,7 +141,7 @@ func (r *Request) URL() string {
 }
 
 func (r *Request) LogError(err error) {
-	r.C.Errorf("%s", err.Error())
+	r.C.Errorf("%v", err.Error())
 	if !strings.Contains(r.URL(), "/tasks/error-mail") && !appengine.IsDevAppServer() {
 		sendErrorByEmail(r.C, err.Error())
 	}

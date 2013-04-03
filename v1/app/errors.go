@@ -10,7 +10,7 @@ import (
 type HttpError int
 
 func (e HttpError) Error() string {
-	return fmt.Sprintf("%d", e)
+	return fmt.Sprintf("http error %d", e)
 }
 
 func Forbidden() error {
