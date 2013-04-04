@@ -12,6 +12,7 @@ import (
 
 	"github.com/gorilla/schema"
 	"github.com/mjibson/goon"
+	"github.com/gorilla/sessions"
 )
 
 var (
@@ -24,6 +25,7 @@ type Request struct {
 	W   http.ResponseWriter
 	C   appengine.Context
 	N   *goon.Goon
+	Session *sessions.Session
 }
 
 // Load the request data using gorilla schema into a struct
