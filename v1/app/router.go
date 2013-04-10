@@ -217,7 +217,6 @@ func checkXsrfToken(req *http.Request, token []uint8) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("decode failed: %s", err)
 	}
-
 	if len(token) != len(unsafeToken) {
 		c.Errorf("[xsrf] length check failed: %d != %d", len(token), len(unsafeToken))
 		return false, nil
