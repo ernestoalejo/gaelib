@@ -48,22 +48,29 @@ func Router(routes map[string]Handler) {
 
 	for route, handler := range routes {
 		h := appstatsWrapper(handler)
-
 		parts := strings.Split(route, "::")
 		if len(parts) != 2 {
 			panic("route not in the method::path format")
-		} else if parts[0] == "ERROR" {
+		}
+
+		// Error handlers
+		if parts[0] == "ERROR" {
 			n, err := strconv.ParseInt(parts[1], 10, 64)
 			if err != nil {
 				panic(err)
 			}
-
 			SetErrorHandler(int(n), handler)
-		} else if len(parts[0]) == 0 {
+			continue
+		} 
+
+		// Generalist handlers (no method specified)
+		if len(parts[0]) == 0 {
 			r.Handle(parts[1], h)
-		} else {
-			r.Handle(parts[1], h).Methods(parts[0])
+			continue
 		}
+
+		// Handlers for a concrete method
+		r.Handle(parts[1], h).Methods(parts[0])
 	}
 }
 
@@ -204,6 +211,7 @@ func checkXsrfToken(req *http.Request, token []uint8) (bool, error) {
 		return false, nil
 	}
 
+	// Check the token itself
 	var unsafeToken []uint8
 	err := securecookie.DecodeMulti("XSRF-TOKEN", header, &unsafeToken, xsrfCodecs...)
 	if err != nil {
