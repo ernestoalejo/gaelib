@@ -15,12 +15,14 @@ import (
 
 	"github.com/gorilla/mux"
 	gaesessions "code.google.com/p/sadbox/appengine/sessions"
+	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/mjibson/appstats"
 	"github.com/mjibson/goon"
 )
 
-var dStore = gaesessions.NewDatastoreStore(model.KIND_SESSION, []byte(conf.SESSION_SECRET))
+var dStore = gaesessions.NewDatastoreStore(model.KIND_SESSION,
+	[]byte(conf.SESSION_SECRET))
 
 type Handler func(r *Request) error
 
@@ -98,14 +100,29 @@ func appstatsWrapper(h Handler) http.Handler {
 		w.Header().Set("Expires", "Mon, 26 Jul 1997 05:00:00 GMT")
 
 		// Build the request object
-		session, _ := dStore.Get(req, conf.SESSION_NAME)
 		rw := newResponseWriter(w)
-		r := &Request{
-			Req: req,
-			W:   rw,
-			C:   c,
-			N:   goon.FromContext(c),
-			Session: session,
+		r := &Request{Req: req, W: rw, C: c, N: goon.FromContext(c)}
+
+		session, token, err := getSession(req, rw)
+		if err != nil {
+			r.processError(fmt.Errorf("build session failed: %s", err))
+			return
+		}
+		r.Session = session
+
+		// Check XSRF token
+		if req.Method == "POST" {
+			if token == "" {
+				c.Errorf("xsrf token not present")
+				r.processError(Forbidden())
+				return
+			}
+			if req.Header.Get("X-XSRF-TOKEN") != token {
+				c.Errorf("xsrf token header check failed: %s != %s",
+					req.Header.Get("X-XSRF-TOKEN"), token)
+				r.processError(Forbidden())
+				return
+			}
 		}
 
 		// Fatal errors recovery
@@ -130,4 +147,31 @@ func appstatsWrapper(h Handler) http.Handler {
 		}
 	}
 	return appstats.NewHandler(f)
+}
+
+// Return the session, the old XSRF token and an error if needed
+func getSession(req *http.Request, w http.ResponseWriter) (*sessions.Session, string, error) {
+	session, _ := dStore.Get(req, conf.SESSION_NAME)
+	session.Options = &sessions.Options{
+		MaxAge: 7 * 24 * 60 * 60, // 7 days
+	}
+
+	var oldtoken string
+	if session.Values["xsrf"] != nil {
+		oldtoken = session.Values["xsrf"].(string)
+	}
+	token := securecookie.GenerateRandomKey(32)
+	session.Values["xsrf"] = string(token)
+
+	codecs := securecookie.CodecsFromPairs([]byte("foobar"))
+	encoded, err := securecookie.EncodeMulti("XSRF-TOKEN", token, codecs...)
+	if err != nil {
+		return nil, "", fmt.Errorf("encode token failed: %s", err)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name: "XSRF-TOKEN",
+		Value: encoded,
+	})
+	return session, oldtoken, nil
 }

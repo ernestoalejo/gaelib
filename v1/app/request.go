@@ -150,11 +150,12 @@ func (r *Request) LogError(err error) {
 }
 
 func (r *Request) processError(err error) {
-	r.LogError(err)
-
 	code := 500
 	if e, ok := err.(HttpError); ok {
 		code = int(e)
+		r.LogError(fmt.Errorf("http status code %s", e))
+	} else {
+		r.LogError(err)
 	}
 
 	h, ok := errorHandlers[code]
