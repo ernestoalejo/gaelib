@@ -120,7 +120,7 @@ func (r *Request) Template(names []string, data interface{}) error {
 
 func (r *Request) TemplateBase(names []string, data interface{}) error {
 	dir := "templates"
-	if r.Req.Header.Get("X-Request-From") == "cb" {
+	if appengine.IsDevAppServer() && r.Req.Header.Get("X-Request-From") == "cb" {
 		dir = filepath.Join("client", "app")
 	}
 
