@@ -14,7 +14,7 @@ import (
 	"appengine/taskqueue"
 	"appengine/urlfetch"
 
-	"github.com/ernestokarim/gaelib/v1/app"
+	"github.com/ernestokarim/gaelib/v2/app"
 )
 
 type Mail struct {
