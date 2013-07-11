@@ -62,8 +62,8 @@ func SendGrid(r *app.Request, m *Mail) error {
 	}
 
 	data := url.Values{
-		"api_user": []string{conf.SENDGRID_USER},
-		"api_key":  []string{conf.SENDGRID_KEY},
+		"api_user": []string{conf.SendGridUser},
+		"api_key":  []string{conf.SendGridKey},
 		"to":       []string{m.To},
 		"toname":   []string{m.ToName},
 		"subject":  []string{m.Subject},
@@ -77,7 +77,7 @@ func SendGrid(r *app.Request, m *Mail) error {
 			Deadline: time.Duration(40) * time.Second,
 		},
 	}
-	resp, err := client.PostForm(conf.SENDGRID_API, data)
+	resp, err := client.PostForm(conf.SendGridAPI, data)
 	if err != nil {
 		return fmt.Errorf("post mail failed: %s", err)
 	}

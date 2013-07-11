@@ -22,9 +22,9 @@ import (
 )
 
 var (
-	dStore = gaesessions.NewDatastoreStore(model.KIND_SESSION,
-			[]byte(conf.SESSION_SECRET))
-	xsrfCodecs = securecookie.CodecsFromPairs([]byte(conf.XSRF_SECRET))
+	dStore = gaesessions.NewDatastoreStore(model.KindSession,
+			[]byte(conf.SessionSecret))
+	xsrfCodecs = securecookie.CodecsFromPairs([]byte(conf.XSRFSecret))
 )
 
 type Handler func(r *Request) error
@@ -157,7 +157,7 @@ func appstatsWrapper(h Handler) http.Handler {
 
 // Return the session, the old XSRF token and an error if needed
 func getSession(req *http.Request, w http.ResponseWriter) (*sessions.Session, []uint8, error) {
-	session, _ := dStore.Get(req, conf.SESSION_NAME)
+	session, _ := dStore.Get(req, conf.SessionName)
 	session.Options = &sessions.Options{
 		Path: "/",
 		MaxAge: 7 * 24 * 60 * 60, // 7 days
